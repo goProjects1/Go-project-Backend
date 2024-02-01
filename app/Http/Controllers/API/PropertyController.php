@@ -47,27 +47,10 @@ class PropertyController extends BaseController
     public function store(Request $request)
     {
         try {
-            // Validation rules
-            $validator = Validator::make($request->all(), [
-                'type' => 'required',
-                'registration_no' => 'required',
-                'license_no' => 'required',
-            ]);
 
-            // If validation fails, return error response
-            if ($validator->fails()) {
-                return $this->sendError($validator->errors(), 'Validation Error', 422);
-            }
-
-            // Check if input is an array
-            if ($request->isArray()) {
-                // If it's an array, loop through each item and create properties
-                foreach ($request->all() as $propertyData) {
-                    $this->createProperty($propertyData);
-                }
-            } else {
-                // If it's not an array, create a single property
-                $this->createProperty($request->all());
+            // Loop through each item in the array and create properties
+            foreach ($request->all() as $propertyData) {
+                $this->createProperty($propertyData);
             }
 
             return $this->sendResponse(null, 'Properties created.');
@@ -83,6 +66,9 @@ class PropertyController extends BaseController
         $property->user_id = Auth::user()->getAuthIdentifier();
         $property->save();
     }
+
+
+
 
 
     /**
