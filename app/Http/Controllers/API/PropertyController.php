@@ -44,7 +44,6 @@ class PropertyController extends BaseController
         return response()->json($userProperties);
     }
 
-
     public function store(Request $request)
     {
         try {
@@ -60,15 +59,31 @@ class PropertyController extends BaseController
                 return $this->sendError($validator->errors(), 'Validation Error', 422);
             }
 
-            // Create a new property and associate it with the authenticated user
-            $property = Property::create($request->all());
-            $property->user_id = Auth::user()->getAuthIdentifier();
+            // Check if input is an array
+            if ($request->isArray()) {
+                // If it's an array, loop through each item and create properties
+                foreach ($request->all() as $propertyData) {
+                    $this->createProperty($propertyData);
+                }
+            } else {
+                // If it's not an array, create a single property
+                $this->createProperty($request->all());
+            }
 
-            return $this->sendResponse(new PropertyResource($property), 'Property created.');
+            return $this->sendResponse(null, 'Properties created.');
         } catch (\Exception $e) {
             return $this->sendError('Error creating property.', $e->getMessage(), 500);
         }
     }
+
+    private function createProperty($data)
+    {
+        // Create a new property and associate it with the authenticated user
+        $property = Property::create($data);
+        $property->user_id = Auth::user()->getAuthIdentifier();
+        $property->save();
+    }
+
 
     /**
      * Display the specified resource.
