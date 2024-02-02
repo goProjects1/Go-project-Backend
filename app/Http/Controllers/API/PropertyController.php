@@ -44,32 +44,55 @@ class PropertyController extends BaseController
         return response()->json($userProperties);
     }
 
+
     public function store(Request $request)
     {
-        try {
+        $data = $request->json()->all();
 
-            // Loop through each item in the array and create properties
-            foreach ($request->all() as $propertyData) {
-                $this->createProperty($propertyData);
-            }
+        if ($this->isValidPropertyData($data)) {
+            $this->storeProperties($data);
 
-            return $this->sendResponse(null, 'Properties created.');
-        } catch (\Exception $e) {
-            return $this->sendError('Error creating property.', $e->getMessage(), 500);
+            return response()->json(['message' => 'Data stored successfully'], 201);
+        } else {
+            return response()->json(['error' => 'Invalid data format'], 400);
         }
     }
 
-    private function createProperty($data)
+    private function isValidPropertyData($data)
     {
-        // Create a new property and associate it with the authenticated user
-        $property = Property::create($data);
-        $property->user_id = Auth::user()->getAuthIdentifier();
-        $property->save();
+        if (is_array($data)) {
+            foreach ($data as $propertyData) {
+                if (!isset($propertyData['type'], $propertyData['registration_no'], $propertyData['license_no'])) {
+                    return false;
+                }
+            }
+        } else {
+            return isset($data['type'], $data['registration_no'], $data['license_no']);
+        }
+
+        return true;
     }
 
+    private function storeProperties($data)
+    {
+        if (is_array($data)) {
+            foreach ($data as $propertyData) {
+                $this->storeProperty($propertyData);
+            }
+        } else {
+            $this->storeProperty($data);
+        }
+    }
 
-
-
+    private function storeProperty($propertyData)
+    {
+        Property::create([
+            'type' => $propertyData['type'],
+            'registration_no' => $propertyData['registration_no'],
+            'license_no' => $propertyData['license_no'],
+            'user_id' => Auth::user()->getAuthIdentifier(),
+        ]);
+    }
 
     /**
      * Display the specified resource.
