@@ -223,119 +223,66 @@ class AuthController extends BaseController
     }
 
 
-    public function updateProfile(Request $request)
+    public function updateUserProfile(Request $request)
     {
         $user = Auth::user();
 
         // Update the user details
-        $user->first_name = $request->input('first_name');
-        $user->country = $request->input('country');
-        $user->postcode = $request->input('postcode');
-        $user->street = $request->input('street');
-        $user->house_number = $request->input('house_number');
-        $user->city = $request->input('city');
-        $user->identity_card_no = $request->input('identity_card_no');
-        $user->nationality = $request->input('nationality');
-        $user->dob = $request->input('dob');
-        $user->gender = $request->input('gender');
-        $user->marital_status = $request->input('marital_status');
-
-        // Save the changes
-        $user->save();
-
-        // Handle profile image and identity card updates
-        $this->handleFileUpload($request, 'profile_image', $user, 'profiles');
-        $this->handleFileUpload($request, 'identity_card', $user, 'profiles');
-
-        // Return the updated user
-        return response()->json($user, 200);
-    }
-
-    private function handleFileUpload(Request $request, $fieldName, $model, $storageFolder)
-    {
-        if ($request->hasFile($fieldName) && $request->file($fieldName)->isValid()) {
-            $file = $request->file($fieldName)->store($storageFolder, 'public');
-            $hashedFilename = $request->file($fieldName)->hashName();
-            $model->{$fieldName} = url('storage/' . $storageFolder . '/' . $hashedFilename);
-            $path = public_path('storage/' . $storageFolder . '/' . $hashedFilename);
-            $model->save();
-        }
-    }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    public function updateProfilez(Request $request): \Illuminate\Http\JsonResponse
-    {
-        try {
-            $validator = Validator::make($request->all(), [
-                'first_name' => 'string|min:2|max:45',
-                'last_name' => 'string|min:2|max:45',
-                'country' => 'string',
-                'postcode' => 'string|min:7|max:7',
-                'street' => 'string',
-                'house_number' => 'string',
-                'city' => 'string',
-                'identity_card_no' => 'string',
-                'nationality' => 'string',
-                'dob' => 'string',
-                'gender' => 'string',
-                'marital_status' => 'string',
-            ]);
-
-            if ($validator->fails()) {
-                $error = $validator->errors()->first();
-                return response()->json(['status' => 'false', 'message' => $error, 'data' => []], 422);
-            } else {
-                $user = User::find($request->user()->id);
-
-                // Check and update first name, last name, and other fields
-                $user->fill($request->except(['profile_image', 'identity_card']));
-
-                $user->save();
-                return response()->json(['status' => 'true', 'message' => "Profile updated successfully", 'data' => $user]);
-            }
-        } catch (\Exception $e) {
-            return response()->json(['status' => 'false', 'message' => $e->getMessage(), 'data' => []], 500);
-        }
-    }
-
-    public function profileImage(Request $request)
-    {
-        $request->validate([
-            'profile_image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
+        $user->update([
+            'first_name' => $request->input('first_name'),
+            'country' => $request->input('country'),
+            'postcode' => $request->input('postcode'),
+            'street' => $request->input('street'),
+            'house_number' => $request->input('house_number'),
+            'city' => $request->input('city'),
+            'identity_card_no' => $request->input('identity_card_no'),
+            'nationality' => $request->input('nationality'),
+            'dob' => $request->input('dob'),
+            'gender' => $request->input('gender'),
+            'marital_status' => $request->input('marital_status'),
         ]);
 
-        dd($request->all());
+        // Handle profile image and identity card updates
+        $profileImagePath = $this->handleFileUpload($request, 'profile_image', $user, 'profiles');
+        $identityCardPath = $this->handleFileUpload($request, 'identity_card', $user, 'profiles');
 
-        $image = $request->file('profile_image');
-        $userImage = time().'.'.$image->getClientOriginalExtension();
-
-        // Save image to storage
-        Storage::disk('public')->put($userImage, file_get_contents($image));
-
-        // Save image details to database
-        $user = Auth::user();
-        $profile = $user->images()->create(['profile_image' => $userImage]);
-
-        // Return image path URL
-        return response()->json(['path' => Storage::url($userImage)]);
+        // Return the response with user details and file paths
+        return $this->sendResponse([
+            'user' => $user,
+            'profile_image' => $profileImagePath,
+            'identity_card' => $identityCardPath
+        ], 'Profile updated successfully.');
     }
+
+    private function handleFileUpload(Request $request, $fieldName, $user, $storageFolder)
+    {
+        if ($request->hasFile($fieldName) && $request->file($fieldName)->isValid()) {
+            // Get the uploaded file from the request
+            $file = $request->file($fieldName);
+
+            // Generate a unique filename for the file
+            $filename = uniqid() . '_' . $file->getClientOriginalName();
+
+            // Save the file to the specified storage folder
+            $file->storeAs($storageFolder, $filename, 'public');
+
+            // Update the user model with the file path
+            $user->{$fieldName} = $filename;
+
+            // Save the user model to persist the changes
+            $user->save();
+
+            // Return the file path
+            return url('storage/' . $storageFolder . '/' . $filename);
+        }
+
+        return null;
+    }
+
 
     //logout function
 
-    public function logout(): \Illuminate\Http\JsonResponse
+    public function logout()
     {
 
         if(Auth::check()) {
