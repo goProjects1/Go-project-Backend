@@ -158,7 +158,125 @@ class AuthController extends BaseController
         }
     }
 
-    public function updateProfile(Request $request): \Illuminate\Http\JsonResponse
+    public function updateProfilee(Request $request)
+    {
+        // Validate the request data
+        $validator = Validator::make($request->all(), [
+            'first_name' => 'string|min:2|max:45',
+            'last_name' => 'string|min:2|max:45',
+            'country' => 'string',
+            'postcode' => 'string|min:7|max:7',
+            'street' => 'string',
+            'house_number' => 'string',
+            'city' => 'string',
+            'identity_card' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
+            'nationality' => 'string',
+            'dob' => 'string',
+            'gender' => 'string',
+            'marital_status' => 'string',
+            'profile_image' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 422);
+        }
+
+        // Get the authenticated user
+        $user = Auth::user();
+
+        // Update user profile with validated data
+        $user->fill($validator->validated());
+
+        // Handle identity card update if provided
+        if ($request->hasFile('identity_card')) {
+            $image = $request->file('identity_card');
+            $imageName = 'identity_card_' . time() . '.' . $image->getClientOriginalExtension();
+
+            // Resize the image if needed
+            $resizedImage = Image::make($image)->fit(600, 600)->encode();
+
+            // Store the image in the storage/app/public directory
+            \Storage::disk('public')->put($imageName, $resizedImage);
+
+            // Update the user's identity_card field with the image path
+            $user->identity_card = $imageName;
+        }
+
+        // Handle profile image update if provided
+        if ($request->hasFile('profile_image')) {
+            $image = $request->file('profile_image');
+            $imageName = 'profile_' . time() . '.' . $image->getClientOriginalExtension();
+
+            // Resize the image if needed
+            $resizedImage = Image::make($image)->fit(300, 300)->encode();
+
+            // Store the image in the storage/app/public directory
+            \Storage::disk('public')->put($imageName, $resizedImage);
+
+            // Update the user's profile_image field with the image path
+            $user->profile_image = $imageName;
+        }
+
+        $user->save();
+
+        return $this->sendResponse($user, 'Profile updated successfully.');
+    }
+
+
+    public function updateProfile(Request $request)
+    {
+        $user = Auth::user();
+
+        // Update the user details
+        $user->first_name = $request->input('first_name');
+        $user->country = $request->input('country');
+        $user->postcode = $request->input('postcode');
+        $user->street = $request->input('street');
+        $user->house_number = $request->input('house_number');
+        $user->city = $request->input('city');
+        $user->identity_card_no = $request->input('identity_card_no');
+        $user->nationality = $request->input('nationality');
+        $user->dob = $request->input('dob');
+        $user->gender = $request->input('gender');
+        $user->marital_status = $request->input('marital_status');
+
+        // Save the changes
+        $user->save();
+
+        // Handle profile image and identity card updates
+        $this->handleFileUpload($request, 'profile_image', $user, 'profiles');
+        $this->handleFileUpload($request, 'identity_card', $user, 'profiles');
+
+        // Return the updated user
+        return response()->json($user, 200);
+    }
+
+    private function handleFileUpload(Request $request, $fieldName, $model, $storageFolder)
+    {
+        if ($request->hasFile($fieldName) && $request->file($fieldName)->isValid()) {
+            $file = $request->file($fieldName)->store($storageFolder, 'public');
+            $hashedFilename = $request->file($fieldName)->hashName();
+            $model->{$fieldName} = url('storage/' . $storageFolder . '/' . $hashedFilename);
+            $path = public_path('storage/' . $storageFolder . '/' . $hashedFilename);
+            $model->save();
+        }
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    public function updateProfilez(Request $request): \Illuminate\Http\JsonResponse
     {
         try {
             $validator = Validator::make($request->all(), [
@@ -193,58 +311,26 @@ class AuthController extends BaseController
         }
     }
 
-    public function handleFileUpload(Request $request, $userId): \Illuminate\Http\JsonResponse
+    public function profileImage(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'image_profile' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
-            'identity_card' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
+        $request->validate([
+            'profile_image' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
-        if ($validator->fails()) {
-            $error = $validator->errors()->first();
-            return response()->json(['status' => 'false', 'message' => $error, 'data' => []], 422);
-        }
+        dd($request->all());
 
-        $user = User::find($userId);
+        $image = $request->file('profile_image');
+        $userImage = time().'.'.$image->getClientOriginalExtension();
 
-        if (!$user) {
-            return response()->json(['status' => 'false', 'message' => 'User not found', 'data' => []], 404);
-        }
+        // Save image to storage
+        Storage::disk('public')->put($userImage, file_get_contents($image));
 
-        if (Auth::id() == $userId) {
-            // Handle image_profile file upload
-            if ($request->hasFile('image_profile')) {
-                $imageProfilePath = $request->file('image_profile')->store('public');
+        // Save image details to database
+        $user = Auth::user();
+        $profile = $user->images()->create(['profile_image' => $userImage]);
 
-                // Check if the new file is different from the existing one
-                if ($user->image_profile !== $imageProfilePath) {
-                    $user->image_profile = $imageProfilePath;
-                }
-            }
-
-            // Handle identity_card file upload
-            if ($request->hasFile('identity_card')) {
-                $identityCardPath = $request->file('identity_card')->store('public');
-
-                // Check if the new file is different from the existing one
-                if ($user->identity_card !== $identityCardPath) {
-                    $user->identity_card = $identityCardPath;
-                }
-            }
-
-            $user->save();
-
-            return response()->json([
-                'status' => 'true',
-                'message' => 'File uploads successful',
-                'data' => [
-                    'profile_image' => Storage::url($user->image_profile),
-                    'identity_card' => Storage::url($user->identity_card),
-                ]
-            ]);
-        }
-
-        return response()->json(['status' => 'false', 'message' => 'Unauthorized', 'data' => []], 403);
+        // Return image path URL
+        return response()->json(['path' => Storage::url($userImage)]);
     }
 
     //logout function

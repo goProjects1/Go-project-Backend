@@ -25,6 +25,7 @@ Route::post('/register', [AuthController::class, 'register']);
 // Auth guided routes
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::put('/updateProfile', [AuthController::class, 'updateProfile']);
+    Route::put('/userImage', [AuthController::class, 'profileImage']);
     Route::put('/handleFileUpload/{userId}', [AuthController::class, 'handleFileUpload']);
     Route::resource('property', PropertyController::class);
     Route::get('/getUserProperty',[PropertyController::class, 'getUserProperty']);
