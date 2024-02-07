@@ -35,4 +35,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/getUserSchool',[StudentController::class, 'getUserSchool']);
     Route::resource('job', JobController::class);
     Route::get('/getUserJob',[JobController::class, 'getUserJob']);
+    Route::get('/logout', [AuthController::class, 'logout']);
+
 });

@@ -42,8 +42,6 @@ class TripController extends BaseController
         // Create trip and notify users within the variable distance
         $trip = new Trip($request->all());
         $trip->sender_id = Auth::user()->getAuthIdentifier();
-        // Save the trip to the database
-        $trip->save();
         $trip = $this->tripService->createTripAndNotifyUsers($trip);
         return $this->sendResponse($trip, 'Trip created successfully');
 

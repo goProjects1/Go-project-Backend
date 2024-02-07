@@ -7,6 +7,9 @@ use App\Mail\TripMail;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Http\Response;
+
 
 class TripService
 {
@@ -29,15 +32,28 @@ class TripService
         }
     }
 
-    protected function getUsersWithinDistance(Trip $trip)
+    protected function getUsersWithinDistance(Trip $trip): \Illuminate\Http\JsonResponse
     {
-        // Implement logic to fetch users within variable distance
-        // Example: Retrieve users within a certain distance from the trip location
+        // Get the authenticated user
+        $user = Auth::user();
+        // Check if user's latitude and longitude are available
+        if (!$user || !$user->latitude || !$user->longitude) {
+            return response()->json(['error' => 'User location not available'], 400);
+        }
 
-        // For illustration purposes, let's assume there is a User model with a 'location' attribute
-        // Adjust this logic based on your actual user model and location data
-        return User::where('location', '<=', $trip->variable_distance)->get();
+        // Assuming you have a User model with 'latitude' and 'longitude' attributes
+        $usersWithinDistance = User::selectRaw(
+            '( 3959 * acos( cos( radians(?) ) * cos( radians( latitude ) )
+                * cos( radians( longitude ) - radians(?) ) + sin( radians(?) )
+                * sin( radians( latitude ) ) ) ) AS distance',
+            [$user->latitude, $user->longitude, $user->latitude]
+        )
+            ->having('distance', '<=', 10) // 10 miles distance
+            ->get();
+
+        return response()->json(['users' => $usersWithinDistance]);
     }
+
 
     public function acceptTrip($trip, $userId): bool
     {

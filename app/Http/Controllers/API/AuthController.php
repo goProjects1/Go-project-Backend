@@ -345,7 +345,7 @@ class AuthController extends BaseController
 
                 // Additional address details, including postal code
                 $addressDetails = [
-                    'city' => $firstResult['address']['city'] ?? null,
+                    'city' => $firstResult['address']['city'] ?? $firstResult['address']['town'] ?? null,
                     'postcode' => $firstResult['address']['postcode'] ?? null,
                     'country' => $firstResult['address']['country'] ?? null,
                 ];
@@ -363,13 +363,16 @@ class AuthController extends BaseController
 
     public function logout()
     {
+        if (Auth::check()) {
+            Auth::user()->tokens->each(function ($token, $key) {
+                $token->delete();
+            });
 
-        if(Auth::check()) {
-            Auth::user()->token()->revoke();
             return response()->json(["status" => "success", "error" => false, "message" => "Success! You are logged out."], 200);
         }
         return response()->json(["status" => "failed", "error" => true, "message" => "Failed! You are already logged out."], 403);
     }
+
 
 
 
