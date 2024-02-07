@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Http\Controllers\API\BaseController as BaseController;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Validator;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
@@ -279,6 +280,59 @@ class AuthController extends BaseController
         return null;
     }
 
+
+    public function profileImage(Request $request)
+    {
+        $request->validate([
+            'profile_image' => 'required|image|mimes:jpeg,png,jpg,gif',
+        ]);
+
+        $user = Auth::user();
+        $path = null;
+
+        if ($request->hasFile('profile_image') && $request->file('profile_image')->isValid()) {
+            $image = $request->file('profile_image');
+            $path = 'storage/profiles/' . $image->hashName();
+            $image->move(public_path('storage/profiles'), $image->hashName());
+            $user->profile_image = $path;
+        }
+
+        $user->save();
+        return response()->json(['profile_image' => asset($user->profile_image), 'user' => $user], 200);
+    }
+
+    public function geocodeAddress(Request $request)
+    {
+        $user = Auth::user()->getAuthIdentifier();
+        $address = $request->postcode;
+        $response = Http::get('https://nominatim.openstreetmap.org/search', [
+            'q' => $address,
+            'format' => 'json',
+            'addressdetails' => 1,
+        ]);
+
+//return $response;
+        $data = $response->json();
+
+        if (!empty($data)) {
+            $firstResult = $data[0];
+            $coordinates = [
+                'lat' => $firstResult['lat'],
+                'lng' => $firstResult['lon'],
+            ];
+
+            // Additional address details, including postal code
+            $addressDetails = [
+                'city' => $firstResult['address']['city'] ?? null,
+                'postcode' => $firstResult['address']['postcode'] ?? null,
+                'country' => $firstResult['address']['country'] ?? null,
+            ];
+
+            return array_merge($coordinates, $addressDetails);
+        }
+
+        return null;
+    }
 
     //logout function
 

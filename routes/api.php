@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\API\TripController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\AuthController;
@@ -26,6 +27,7 @@ Route::post('/register', [AuthController::class, 'register']);
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::put('/updateProfile', [AuthController::class, 'updateProfile']);
     Route::put('/userImage', [AuthController::class, 'profileImage']);
+    Route::get('/ops', [AuthController::class, 'geocodeAddress']);
     Route::put('/handleFileUpload/{userId}', [AuthController::class, 'handleFileUpload']);
     Route::resource('property', PropertyController::class);
     Route::get('/getUserProperty',[PropertyController::class, 'getUserProperty']);

@@ -43,6 +43,8 @@ class User extends Authenticatable
         'password'
     ];
 
+
+
     /**
      * The attributes that should be hidden for serialization.
      *
@@ -61,4 +63,16 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+
+    // Relationship: One user can have many trips as the sender
+    public function sentTrips(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Trip::class, 'sender_id');
+    }
+
+    // Relationship: One user can have many trips as the guest
+    public function receivedTrips(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Trip::class, 'guest_id');
+    }
 }
