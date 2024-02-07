@@ -303,35 +303,60 @@ class AuthController extends BaseController
 
     public function geocodeAddress(Request $request)
     {
-        $user = Auth::user()->getAuthIdentifier();
-        $address = $request->postcode;
+        // Get the authenticated user
+        $user = Auth::user();
+
+        // Ensure the user is authenticated before proceeding
+        if (!$user) {
+            return response()->json(['error' => 'User not authenticated'], 401);
+        }
+
+        // Extract postcode from the request
+        $postcode = $request->input('postcode');
+
+        // Make a request to the OpenStreetMap Nominatim API
         $response = Http::get('https://nominatim.openstreetmap.org/search', [
-            'q' => $address,
+            'q' => $postcode,
             'format' => 'json',
             'addressdetails' => 1,
         ]);
 
-//return $response;
-        $data = $response->json();
+        // Check if the API request was successful
+        if ($response->successful()) {
+            // Retrieve data from the API response
+            $data = $response->json();
 
-        if (!empty($data)) {
-            $firstResult = $data[0];
-            $coordinates = [
-                'lat' => $firstResult['lat'],
-                'lng' => $firstResult['lon'],
-            ];
+            // Check if data is not empty
+            if (!empty($data)) {
+                // Extract information from the first result
+                $firstResult = $data[0];
 
-            // Additional address details, including postal code
-            $addressDetails = [
-                'city' => $firstResult['address']['city'] ?? null,
-                'postcode' => $firstResult['address']['postcode'] ?? null,
-                'country' => $firstResult['address']['country'] ?? null,
-            ];
+                // Extract coordinates
+                $coordinates = [
+                    'lat' => $firstResult['lat'],
+                    'lng' => $firstResult['lon'],
+                ];
 
-            return array_merge($coordinates, $addressDetails);
+                // Update the user's table with the obtained coordinates
+                $user->update([
+                    'latitude' => $coordinates['lat'],
+                    'longitude' => $coordinates['lng'],
+                ]);
+
+                // Additional address details, including postal code
+                $addressDetails = [
+                    'city' => $firstResult['address']['city'] ?? null,
+                    'postcode' => $firstResult['address']['postcode'] ?? null,
+                    'country' => $firstResult['address']['country'] ?? null,
+                ];
+
+                return array_merge($coordinates, $addressDetails);
+            } else {
+                return response()->json(['error' => 'No data found for the given postcode'], 404);
+            }
+        } else {
+            return response()->json(['error' => 'Failed to retrieve data from the geocoding API'], $response->status());
         }
-
-        return null;
     }
 
     //logout function
