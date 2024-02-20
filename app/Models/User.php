@@ -44,6 +44,7 @@ class User extends Authenticatable
         'longitude',
         'latitude',
         'address',
+        'house_number',
     ];
 
 

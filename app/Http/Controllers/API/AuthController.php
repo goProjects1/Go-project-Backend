@@ -17,7 +17,9 @@ use Carbon\Carbon;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
-
+use Grimzy\LaravelMysqlSpatial\Types\Point;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Validation\ValidationException;
 
 
 class AuthController extends BaseController
@@ -107,8 +109,8 @@ class AuthController extends BaseController
 //                    Redis::expire($ipRateLimitKey, $rateLimitDuration);
 //                }
 
-            $success = "cool";
-            return $this->sendResponse($success, 'User created successfully.');
+            $success = "Success";
+            return $this->sendResponse($success, 'OTP sent successfully.');
             //     return response(["status" => 200, "message" => "OTP sent successfully"]);
         } else {
             return response()->json(['message' => 'Record not found.'], 404);
@@ -130,28 +132,6 @@ class AuthController extends BaseController
             auth()->login($user, true);
             $user->otp = null;
             $user->save();
-            // $success['token'] = auth()->user()->createToken('authToken')->accessToken;
-
-            // Reset the rate limit counters after successful login
-//            $userRateLimitKey = 'rate_limit:user:' . $user->id . ':' . $request->email;
-//            $ipRateLimitKey = 'rate_limit:ip:' . $this->getRequesterIP();
-//            Redis::del($userRateLimitKey);
-//            Redis::del($ipRateLimitKey);
-
-            // Get and display the user data from Redis cache
-            // $userDataKey = 'user:' . $user->id;
-            // $userData = Redis::get($userDataKey);
-
-//        if ($userData) {
-            // Assuming user data was stored as JSON, decode it to an array for display
-            //          $userArray = json_decode($userData, true);
-
-            // Display the user data as needed
-            // For example:
-            //        echo "User ID: " . $userArray['id'] . "<br>";
-            //      echo "Name: " . $userArray['name'] . "<br>";
-            // and so on...
-            // }
             $success['token'] = $user->createToken('MyAuthApp')->plainTextToken;
             return $this->sendResponse($success, "Success");
         } else {
@@ -223,143 +203,155 @@ class AuthController extends BaseController
         return $this->sendResponse($user, 'Profile updated successfully.');
     }
 
-
-    public function updateUserProfile(Request $request)
+    public function profileImage(Request $request): JsonResponse
     {
-        $user = Auth::user();
+        try {
+            // Validate the request data
+            $validatedData = $request->validate([
+                'first_name' => 'required|string',
+                'country' => 'required|string',
+                'postcode' => 'required|string',
+                'street' => 'required|string',
+                'house_number' => 'required|string',
+                'city' => 'required|string',
+                'identity_card_no' => 'required|string',
+                'nationality' => 'required|string',
+                'dob' => 'required|date',
+                'gender' => 'required|in:male,female,other',
+                'marital_status' => 'required|in:single,married,divorced,widowed',
+                'profile_image' => 'required|image|mimes:jpeg,png,jpg,gif',
+                'identity_card' => 'required|file|mimes:pdf,jpeg,png,jpg,gif',
+                'address' => 'required|string',
+            ]);
 
-        // Update the user details
-        $user->update([
-            'first_name' => $request->input('first_name'),
-            'country' => $request->input('country'),
-            'postcode' => $request->input('postcode'),
-            'street' => $request->input('street'),
-            'house_number' => $request->input('house_number'),
-            'city' => $request->input('city'),
-            'identity_card_no' => $request->input('identity_card_no'),
-            'nationality' => $request->input('nationality'),
-            'dob' => $request->input('dob'),
-            'gender' => $request->input('gender'),
-            'marital_status' => $request->input('marital_status'),
-        ]);
+            $user = Auth::user();
 
-        // Handle profile image and identity card updates
-        $profileImagePath = $this->handleFileUpload($request, 'profile_image', $user, 'profiles');
-        $identityCardPath = $this->handleFileUpload($request, 'identity_card', $user, 'profiles');
+            // Update additional user data
+            $user->update([
+                'first_name' => $validatedData['first_name'],
+                'country' => $validatedData['country'],
+                'postcode' => $validatedData['postcode'],
+                'street' => $validatedData['street'],
+                'house_number' => $validatedData['house_number'],
+                'city' => $validatedData['city'],
+                'identity_card_no' => $validatedData['identity_card_no'],
+                'nationality' => $validatedData['nationality'],
+                'dob' => $validatedData['dob'],
+                'gender' => $validatedData['gender'],
+                'marital_status' => $validatedData['marital_status'],
+                'address' => $validatedData['address'],
+            ]);
 
-        // Return the response with user details and file paths
-        return $this->sendResponse([
-            'user' => $user,
-            'profile_image' => $profileImagePath,
-            'identity_card' => $identityCardPath
-        ], 'Profile updated successfully.');
-    }
 
-    private function handleFileUpload(Request $request, $fieldName, $user, $storageFolder)
-    {
-        if ($request->hasFile($fieldName) && $request->file($fieldName)->isValid()) {
-            // Get the uploaded file from the request
-            $file = $request->file($fieldName);
+            if ($request->hasFile('identity_card') && $request->file('identity_card')->isValid()) {
+                $identityCard = $request->file('identity_card');
 
-            // Generate a unique filename for the file
-            $filename = uniqid() . '_' . $file->getClientOriginalName();
+                $identityCardPath = 'storage/identity_cards/';
 
-            // Save the file to the specified storage folder
-            $file->storeAs($storageFolder, $filename, 'public');
+                $identityCardPath = $identityCardPath . $identityCard->hashName();
+                $identityCard->move(public_path($identityCardPath), $identityCard->hashName());
 
-            // Update the user model with the file path
-            $user->{$fieldName} = $filename;
 
-            // Save the user model to persist the changes
+                $user->identity_card = $identityCardPath;
+            }
+
+            if ($request->hasFile('profile_image') && $request->file('profile_image')->isValid()) {
+                $profileImage = $request->file('profile_image');
+
+                $profileImagePath = 'storage/profiles/';
+
+                $profileImagePath = $profileImagePath . $profileImage->hashName();
+                $profileImage->move(public_path($profileImagePath), $profileImage->hashName());
+
+                $user->profile_image = $profileImagePath;
+            }
+
+            // Set isVerify to 1 when all input fields are supplied
+            $user->isVerify = 1;
+
+            // Save the user model
             $user->save();
 
-            // Return the file path
-            return url('storage/' . $storageFolder . '/' . $filename);
+            return response()->json([
+                'profile_image' => asset($user->profile_image),
+                'identity_card' => asset($user->identity_card),
+                'user' => $user,
+                'message' => 'User is verified',
+            ], 200);
+        } catch (ValidationException $validationException) {
+            Log::error('Validation error during profile image and user data update', [
+                'validation_errors' => $validationException->errors(),
+            ]);
+
+            return response()->json(['error' => 'Validation failed', 'errors' => $validationException->errors()], 422);
+        } catch (\Exception $e) {
+            Log::error('Profile image, identity card, and user data update failed unexpectedly', ['exception' => $e]);
+
+            return response()->json(['error' => 'An unexpected error occurred.'], 500);
         }
-
-        return null;
-    }
-
-
-    public function profileImage(Request $request)
-    {
-        $request->validate([
-            'profile_image' => 'required|image|mimes:jpeg,png,jpg,gif',
-        ]);
-
-        $user = Auth::user();
-        $path = null;
-
-        if ($request->hasFile('profile_image') && $request->file('profile_image')->isValid()) {
-            $image = $request->file('profile_image');
-            $path = 'storage/profiles/' . $image->hashName();
-            $image->move(public_path('storage/profiles'), $image->hashName());
-            $user->profile_image = $path;
-        }
-
-        $user->save();
-        return response()->json(['profile_image' => asset($user->profile_image), 'user' => $user], 200);
     }
 
     public function geocodeAddress(Request $request)
     {
-        // Get the authenticated user
         $user = Auth::user();
 
-        // Ensure the user is authenticated before proceeding
         if (!$user) {
             return response()->json(['error' => 'User not authenticated'], 401);
         }
 
-        // Extract postcode from the request
         $postcode = $request->input('postcode');
+        $city = $request->input('city');
+        $country = $request->input('country');
 
-        // Make a request to the OpenStreetMap Nominatim API
         $response = Http::get('https://nominatim.openstreetmap.org/search', [
-            'q' => $postcode,
+            'q' => $postcode . ' ' . $city . ' ' . $country,
             'format' => 'json',
             'addressdetails' => 1,
         ]);
 
-        // Check if the API request was successful
         if ($response->successful()) {
-            // Retrieve data from the API response
             $data = $response->json();
 
-            // Check if data is not empty
             if (!empty($data)) {
-                // Extract information from the first result
-                $firstResult = $data[0];
+                $results = [];
 
-                // Extract coordinates
-                $coordinates = [
-                    'lat' => $firstResult['lat'],
-                    'lng' => $firstResult['lon'],
-                ];
+                foreach ($data as $result) {
+                    $coordinates = [
+                        'lat' => $result['lat'],
+                        'lng' => $result['lon'],
+                    ];
 
-                // Update the user's table with the obtained coordinates
-                $user->update([
-                    'latitude' => $coordinates['lat'],
-                    'longitude' => $coordinates['lng'],
-                ]);
+                    $addressDetails = [
+                        'city' => $result['address']['city'] ?? $result['address']['town'] ?? null,
+                        'postcode' => $result['address']['postcode'] ?? null,
+                        'country' => $result['address']['country'] ?? null,
+                    ];
 
-                // Additional address details, including postal code
-                $addressDetails = [
-                    'city' => $firstResult['address']['city'] ?? $firstResult['address']['town'] ?? null,
-                    'postcode' => $firstResult['address']['postcode'] ?? null,
-                    'country' => $firstResult['address']['country'] ?? null,
-                ];
+                    $results[] = array_merge($coordinates, $addressDetails);
+                }
+                if (!empty($data[0])) {
+                    $firstResult = $data[0];
+                    $user->update([
+                        'latitude' => $firstResult['lat'],
+                        'longitude' => $firstResult['lon'],
+                    ]);
+                }
 
-                return array_merge($coordinates, $addressDetails);
+                return $results;
             } else {
                 return response()->json(['error' => 'No data found for the given postcode'], 404);
             }
         } else {
+            // Log the response content for further investigation
+            Log::error('Geocoding API Error: ' . $response->body());
+
             return response()->json(['error' => 'Failed to retrieve data from the geocoding API'], $response->status());
         }
     }
 
-    //logout function
+
+
+      //logout function
 
     public function logout()
     {
@@ -373,9 +365,13 @@ class AuthController extends BaseController
         return response()->json(["status" => "failed", "error" => true, "message" => "Failed! You are already logged out."], 403);
     }
 
+    public function getProfile()
+    {
+        $id = Auth::user();
+        $getProfileFirstt = user::where('id', $id->id)->get();
+        return response()->json($getProfileFirstt);
 
-
-
+    }
 
 
 }

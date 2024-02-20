@@ -26,7 +26,7 @@ Route::post('/register', [AuthController::class, 'register']);
 // Auth guided routes
 Route::middleware(['auth:sanctum'])->group(function () {
     Route::put('/updateProfile', [AuthController::class, 'updateProfile']);
-    Route::put('/userImage', [AuthController::class, 'profileImage']);
+    Route::post('/userImage', [AuthController::class, 'profileImage']);
     Route::get('/ops', [AuthController::class, 'geocodeAddress']);
     Route::put('/handleFileUpload/{userId}', [AuthController::class, 'handleFileUpload']);
     Route::resource('property', PropertyController::class);
@@ -36,5 +36,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::resource('job', JobController::class);
     Route::get('/getUserJob',[JobController::class, 'getUserJob']);
     Route::get('/logout', [AuthController::class, 'logout']);
+    Route::get('getProfile',  [AuthController::class, 'getProfile']);
 
 });
