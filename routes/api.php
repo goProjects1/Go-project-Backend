@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\API\ForgetpasswordController;
 use App\Http\Controllers\API\TripController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -22,6 +23,8 @@ use App\Http\Controllers\API\JobController;
 Route::post('/attemptLogin', [AuthController::class, 'AttemptLogin']);
 Route::post('/loginViaOtp', [AuthController::class, 'loginViaOtp']);
 Route::post('/register', [AuthController::class, 'register']);
+Route::post('/forgot-password', [ForgetpasswordController::class, 'forgot']);
+Route::post('/reset', [ForgetpasswordController::class, 'reset']);
 
 // Auth guided routes
 Route::middleware(['auth:sanctum'])->group(function () {
