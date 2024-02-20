@@ -19,6 +19,9 @@ class TripService
         // Fill the instance with the provided data
         $trip->save();
 
+        // Log information about users within distance
+        $this->logUsersWithinDistance($trip);
+
         // Send trip notifications to users within distance
         $this->sendTripNotifications($trip);
 
@@ -26,9 +29,15 @@ class TripService
         return $trip;
     }
 
+    private function logUsersWithinDistance(Trip $trip)
+    {
+        $usersWithinDistance = $this->getUsersWithinDistance($trip);
 
+        // Log users within distance
+        Log::info('Users within distance for trip ' . $trip->id . ': ' . json_encode($usersWithinDistance));
+    }
 
-    protected function sendTripNotifications(Trip $trip)
+    private function sendTripNotifications(Trip $trip)
     {
         $usersWithinDistance = $this->getUsersWithinDistance($trip);
 
@@ -37,10 +46,9 @@ class TripService
                 Mail::to($user->email)->send(new TripMail($trip));
             }
         }
-
     }
 
-    protected function getUsersWithinDistance(Trip $trip): \Illuminate\Http\JsonResponse
+    private function getUsersWithinDistance(Trip $trip): \Illuminate\Http\JsonResponse
     {
         // Get the authenticated user
         $user = Auth::user();
@@ -54,17 +62,17 @@ class TripService
 
         // Assuming you have a User model with 'latitude' and 'longitude' attributes
         $usersWithinDistance = User::selectRaw(
-            '( 3959 * acos( cos( radians(?) ) * cos( radians( latitude ) ) * cos( radians( longitude ) - radians(?) ) + sin( radians(?) ) * sin( radians( latitude ) ) ) ) AS distance',
+            'users.*, ( 3959 * acos( cos( radians(?) ) * cos( radians( latitude ) ) * cos( radians( longitude ) - radians(?) ) + sin( radians(?) ) * sin( radians( latitude ) ) ) ) AS distance',
             [$user->latitude, $user->longitude, $user->latitude]
         )
             ->having('distance', '<=', $variableDistance)
             ->get();
 
-        // Log or print the SQL query for debugging
-        // Log::info((string)DB::getQueryLog());
-
         return response()->json(['users' => $usersWithinDistance]);
     }
+
+
+
 
 
     public function acceptTrip($trip, $userId): bool
