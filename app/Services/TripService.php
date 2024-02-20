@@ -94,22 +94,23 @@ class TripService
     {
         $user = User::findOrFail($userId);
 
-//        if ($user->distnace <= $trip->variable_distance) {
-            // Update trip status and reduce available seat
-            $trip->update(array(
-                'trip_status' => 'accepted',
-                'available_seat' => $trip->available_seat - 1,
-                'guess_id' => Auth::user()->getAuthIdentifier(),
-         //   ]);
+        // if ($user->distnace <= $trip->variable_distance) {
+        // Update trip status and reduce available seat
+        $trip->update([
+            'trip_status' => 'accepted',
+            'available_seat' => $trip->available_seat - 1,
+            'guess_id' => Auth::user()->getAuthIdentifier(),
+        ]);
 
-            // Notify the trip creator about the acceptance
-            $this->notifyTripCreator($trip));
+        // Notify the trip creator about the acceptance
+        $this->notifyTripCreator($trip);
 
-            return true;
-//        }
-//
-//        return false;
+        return true;
+        // }
+
+        // return false;
     }
+
 
     protected function notifyTripCreator(Trip $trip)
     {
