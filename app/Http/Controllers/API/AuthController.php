@@ -25,8 +25,6 @@ use Illuminate\Validation\ValidationException;
 class AuthController extends BaseController
 {
     //
-
-
     public function register(Request $request)
     {
         $validator = Validator::make($request->all(), [

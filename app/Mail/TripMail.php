@@ -21,7 +21,7 @@ class TripMail extends Mailable
 
     public function build(): TripMail
     {
-        return $this->view('emails.trip');
+        return $this->view('Email.trip');
     }
 }
 

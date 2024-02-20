@@ -40,5 +40,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/getUserJob',[JobController::class, 'getUserJob']);
     Route::get('/logout', [AuthController::class, 'logout']);
     Route::get('getProfile',  [AuthController::class, 'getProfile']);
+    Route::post('/create-trip', [TripController::class, 'createTrip']);
+    Route::post('/accept-trip', [TripController::class, 'acceptTrip']);
 
 });

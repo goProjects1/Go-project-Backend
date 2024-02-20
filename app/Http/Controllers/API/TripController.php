@@ -42,12 +42,12 @@ class TripController extends BaseController
         // Create trip and notify users within the variable distance
         $trip = new Trip($request->all());
         $trip->sender_id = Auth::user()->getAuthIdentifier();
-        $trip = $this->tripService->createTripAndNotifyUsers($trip);
+        $this->tripService->createTripAndNotifyUsers($trip);
         return $this->sendResponse($trip, 'Trip created successfully');
 
     }
 
-    public function acceptTrip(Request $request, $tripId, $userId)
+    public function acceptTrip(Request $request, $tripId, $userId): \Illuminate\Http\JsonResponse
     {
         // Implement logic to handle user acceptance of the trip
         $trip = Trip::findOrFail($tripId);

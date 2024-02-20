@@ -5,6 +5,10 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @method static findOrFail($tripId)
+ * @property mixed $sender_id
+ */
 class Trip extends Model
 {
     use HasFactory;
