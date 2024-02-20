@@ -19,6 +19,8 @@ class TripService
         // Fill the instance with the provided data
         $trip->save();
 
+       // $this->saveDistanceForTrip($trip);
+
         // Log information about users within distance
         $this->logUsersWithinDistance($trip);
 
@@ -48,14 +50,14 @@ class TripService
         }
     }
 
-    private function getUsersWithinDistance(Trip $trip): \Illuminate\Http\JsonResponse
+    private function getUsersWithinDistance(Trip $trip): \Illuminate\Database\Eloquent\Collection
     {
         // Get the authenticated user
         $user = Auth::user();
 
         // Check if user's latitude and longitude are available
         if (!$user || !$user->latitude || !$user->longitude) {
-            return response()->json(['error' => 'User location not available'], 400);
+            return collect(); // Return an empty collection or handle the error as needed
         }
 
         $variableDistance = $trip->variable_distance;
@@ -68,32 +70,45 @@ class TripService
             ->having('distance', '<=', $variableDistance)
             ->get();
 
-        return response()->json(['users' => $usersWithinDistance]);
+        return $usersWithinDistance;
     }
 
-
-
-
+//    private function saveDistanceForTrip(Trip $trip)
+//    {
+//        $usersWithinDistance = $this->getUsersWithinDistance($trip);
+//
+//        // Check if there are users within distance
+//        if ($usersWithinDistance->count() > 0) {
+//            // Get the average distance for users within distance
+//            $averageDistance = $usersWithinDistance->avg('distance');
+//
+//            // Save the average distance to the trip table
+//            $trip->update(['distance' => $averageDistance]);
+//        } else {
+//            // Set a default or placeholder value for distance
+//            $trip->update(['distance' => null]); // You can use any default value or NULL as per your needs
+//        }
+//    }
 
     public function acceptTrip($trip, $userId): bool
     {
         $user = User::findOrFail($userId);
 
-        if ($user->location <= $trip->variable_distance) {
+//        if ($user->distnace <= $trip->variable_distance) {
             // Update trip status and reduce available seat
-            $trip->update([
+            $trip->update(array(
                 'trip_status' => 'accepted',
                 'available_seat' => $trip->available_seat - 1,
                 'guess_id' => Auth::user()->getAuthIdentifier(),
-            ]);
+         //   ]);
 
             // Notify the trip creator about the acceptance
-            $this->notifyTripCreator($trip);
+            $this->notifyTripCreator($trip));
 
             return true;
-        }
-
-        return false;
+//        }
+//
+//        return false;
     }
 
     protected function notifyTripCreator(Trip $trip)
