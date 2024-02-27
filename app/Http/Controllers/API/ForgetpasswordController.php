@@ -18,44 +18,45 @@ class ForgetpasswordController extends BaseController
     //
     public function forgot(Request $request)
     {
-        $validator = Validator::make($request->all(), [
-            'email' => 'required|email|unique:users',
-        ]);
+        $email = $request->input('email');
 
-        if ($validator->fails()) {
-            return $this->sendError('Error validation', $validator->errors());
-        }
-        $email = $request -> input('email');
-        if(User::where('email', $email)->doesntExist())
-        {
+        if (User::where('email', $email)->doesntExist()) {
             return response([
-                'message' => 'user doesn\'t exists'
+                'message' => 'User doesn\'t exist'
             ]);
         }
+
         $token = Str::random(10);
-        try   {
+
+        try {
             DB::table('password_resets')->insert([
                 'email' => $email,
                 'token' => $token,
+                'created_at' => now(),
             ]);
 
-            $data = [
+        $data = [
                 'token' => $token,
                 'email' => $email
             ];
-            //send email
-            Mail::send('Email.forgot', $data , function ($message) use ($email) {
-                $message->to($email);
+
+            // Send email
+            Mail::send('Email.forgot', $data, function ($message) use ($data) {
+                $message->to($data['email']);
                 $message->subject('Go-project: Reset Password');
             });
 
-
-        }catch (\Exception $exception){
             return response([
-                'message' => $exception -> getMessage()
+                'message' => 'OTP sent successfully. Check your email.'
+            ]);
+
+        } catch (\Exception $exception) {
+            return response([
+                'message' => $exception->getMessage()
             ], 400);
         }
     }
+
 
     public function Reset(Request $request){
 
