@@ -40,7 +40,12 @@ class User extends Authenticatable
         'isVerify',
         'phone_number',
         'email_verified_at',
-        'password'
+        'password',
+	'longitude',
+        'latitude',
+        'address',
+	'house_number',
+
     ];
 
     /**

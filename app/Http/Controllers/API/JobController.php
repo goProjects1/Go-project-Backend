@@ -45,20 +45,14 @@ class JobController extends BaseController
         return response()->json($userJob);
     }
 
-    /**
-     * Store a newly created job in storage.
-     *
-     * @param Request $request
-     * @return Response
-     */
-    public function store(Request $request): Response
+    
+    public function store(Request $request)
     {
         try {
             // Validation rules
             $validator = Validator::make($request->all(), [
                 'sector' => 'required',
                 'job_title' => 'required',
-                'license_no' => 'required',
             ]);
 
             // If validation fails, return error response
@@ -98,14 +92,8 @@ class JobController extends BaseController
         return $this->sendResponse(new JobResource($job), 'Job fetched.');
     }
 
-    /**
-     * Update the specified job in storage.
-     *
-     * @param Request $request
-     * @param int $jobId
-     * @return Response
-     */
-    public function update(Request $request, int $jobId): Response
+
+    public function update(Request $request, int $jobId)
     {
         try {
             // Find job by ID
@@ -116,8 +104,9 @@ class JobController extends BaseController
                 'sector' => $request->input('sector', $job->sector),
                 'job_type' => $request->input('job_type', $job->job_type),
                 'license_no' => $request->input('license_no', $job->license_no),
-            ]);
 
+            ]);
+		 $job->user_id = Auth::user()->getAuthIdentifier();
             // Return a success response with the updated job
             return $this->sendResponse(new JobResource($job), 'Job updated.');
         } catch (\Exception $e) {
