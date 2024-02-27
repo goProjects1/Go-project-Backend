@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Http\Controllers\API\BaseController as BaseController;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Validator;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
@@ -19,14 +20,14 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Validation\ValidationException;
-
+use Grimzy\LaravelMysqlSpatial\Types\Point;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Validation\ValidationException;
 
 
 class AuthController extends BaseController
 {
     //
-
-
     public function register(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -109,8 +110,8 @@ class AuthController extends BaseController
 //                    Redis::expire($ipRateLimitKey, $rateLimitDuration);
 //                }
 
-            $success = "cool";
-            return $this->sendResponse($success, 'User created successfully.');
+            $success = "Success";
+            return $this->sendResponse($success, 'OTP sent successfully.');
             //     return response(["status" => 200, "message" => "OTP sent successfully"]);
         } else {
             return response()->json(['message' => 'Record not found.'], 404);
@@ -132,34 +133,13 @@ class AuthController extends BaseController
             auth()->login($user, true);
             $user->otp = null;
             $user->save();
-            // $success['token'] = auth()->user()->createToken('authToken')->accessToken;
-
-            // Reset the rate limit counters after successful login
-//            $userRateLimitKey = 'rate_limit:user:' . $user->id . ':' . $request->email;
-//            $ipRateLimitKey = 'rate_limit:ip:' . $this->getRequesterIP();
-//            Redis::del($userRateLimitKey);
-//            Redis::del($ipRateLimitKey);
-
-            // Get and display the user data from Redis cache
-            // $userDataKey = 'user:' . $user->id;
-            // $userData = Redis::get($userDataKey);
-
-//        if ($userData) {
-            // Assuming user data was stored as JSON, decode it to an array for display
-            //          $userArray = json_decode($userData, true);
-
-            // Display the user data as needed
-            // For example:
-            //        echo "User ID: " . $userArray['id'] . "<br>";
-            //      echo "Name: " . $userArray['name'] . "<br>";
-            // and so on...
-            // }
             $success['token'] = $user->createToken('MyAuthApp')->plainTextToken;
             return $this->sendResponse($success, "Success");
         } else {
             return response(["status" => 401, 'message' => 'Invalid']);
         }
     }
+
 
    public function profileImage(Request $request)
     {
@@ -214,7 +194,6 @@ class AuthController extends BaseController
                 // Update the user's identity_card attribute
                 $user->identity_card = $identityCardPath;
             }
-
             // Handle profile image file
             if ($request->hasFile('profile_image') && $request->file('profile_image')->isValid()) {
                 $profileImage = $request->file('profile_image');
@@ -227,6 +206,130 @@ class AuthController extends BaseController
                 $profileImage->move(public_path($profileImagePath), $profileImage->hashName());
 
                 // Update the user's profile_image attribute
+    public function updateProfilee(Request $request)
+    {
+        // Validate the request data
+        $validator = Validator::make($request->all(), [
+            'first_name' => 'string|min:2|max:45',
+            'last_name' => 'string|min:2|max:45',
+            'country' => 'string',
+            'postcode' => 'string|min:7|max:7',
+            'street' => 'string',
+            'house_number' => 'string',
+            'city' => 'string',
+            'identity_card' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
+            'nationality' => 'string',
+            'dob' => 'string',
+            'gender' => 'string',
+            'marital_status' => 'string',
+            'profile_image' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['error' => $validator->errors()], 422);
+        }
+
+        // Get the authenticated user
+        $user = Auth::user();
+
+        // Update user profile with validated data
+        $user->fill($validator->validated());
+
+        // Handle identity card update if provided
+        if ($request->hasFile('identity_card')) {
+            $image = $request->file('identity_card');
+            $imageName = 'identity_card_' . time() . '.' . $image->getClientOriginalExtension();
+
+            // Resize the image if needed
+            $resizedImage = Image::make($image)->fit(600, 600)->encode();
+
+            // Store the image in the storage/app/public directory
+            \Storage::disk('public')->put($imageName, $resizedImage);
+
+            // Update the user's identity_card field with the image path
+            $user->identity_card = $imageName;
+        }
+
+        // Handle profile image update if provided
+        if ($request->hasFile('profile_image')) {
+            $image = $request->file('profile_image');
+            $imageName = 'profile_' . time() . '.' . $image->getClientOriginalExtension();
+
+            // Resize the image if needed
+            $resizedImage = Image::make($image)->fit(300, 300)->encode();
+
+            // Store the image in the storage/app/public directory
+            \Storage::disk('public')->put($imageName, $resizedImage);
+
+            // Update the user's profile_image field with the image path
+            $user->profile_image = $imageName;
+        }
+
+        $user->save();
+
+        return $this->sendResponse($user, 'Profile updated successfully.');
+    }
+
+    public function profileImage(Request $request): JsonResponse
+    {
+        try {
+            // Validate the request data
+            $validatedData = $request->validate([
+                'first_name' => 'required|string',
+                'country' => 'required|string',
+                'postcode' => 'required|string',
+                'street' => 'required|string',
+                'house_number' => 'required|string',
+                'city' => 'required|string',
+                'identity_card_no' => 'required|string',
+                'nationality' => 'required|string',
+                'dob' => 'required|date',
+                'gender' => 'required|in:male,female,other',
+                'marital_status' => 'required|in:single,married,divorced,widowed',
+                'profile_image' => 'required|image|mimes:jpg,png,jpg,gif',
+                'identity_card' => 'required|file|mimes:pdf,jpeg,png,jpg,gif',
+                'address' => 'required|string',
+            ]);
+
+            $user = Auth::user();
+
+            // Update additional user data
+            $user->update([
+                'first_name' => $validatedData['first_name'],
+                'country' => $validatedData['country'],
+                'postcode' => $validatedData['postcode'],
+                'street' => $validatedData['street'],
+                'house_number' => $validatedData['house_number'],
+                'city' => $validatedData['city'],
+                'identity_card_no' => $validatedData['identity_card_no'],
+                'nationality' => $validatedData['nationality'],
+                'dob' => $validatedData['dob'],
+                'gender' => $validatedData['gender'],
+                'marital_status' => $validatedData['marital_status'],
+                'address' => $validatedData['address'],
+            ]);
+
+
+            if ($request->hasFile('identity_card') && $request->file('identity_card')->isValid()) {
+                $identityCard = $request->file('identity_card');
+
+                $identityCardPath = 'storage/identity_cards/';
+
+                $identityCardPath = $identityCardPath . $identityCard->hashName();
+                $identityCard->move(public_path($identityCardPath), $identityCard->hashName());
+
+
+                $user->identity_card = $identityCardPath;
+            }
+
+            if ($request->hasFile('profile_image') && $request->file('profile_image')->isValid()) {
+                $profileImage = $request->file('profile_image');
+
+                $profileImagePath = 'storage/profiles/';
+
+                $profileImagePath = $profileImagePath . $profileImage->hashName();
+                $profileImage->move(public_path($profileImagePath), $profileImage->hashName());
+
                 $user->profile_image = $profileImagePath;
             }
 
@@ -244,11 +347,9 @@ class AuthController extends BaseController
                 'message' => 'User is verified',
             ], 200);
         } catch (ValidationException $validationException) {
-            // Log validation errors
             Log::error('Validation error during profile image and user data update', [
                 'validation_errors' => $validationException->errors(),
             ]);
-
             // Return a JSON response with validation errors
             return response()->json(['error' => 'Validation failed', 'errors' => $validationException->errors()], 422);
         } catch (\Exception $e) {
@@ -256,6 +357,9 @@ class AuthController extends BaseController
             Log::error('Profile image, identity card, and user data update failed unexpectedly', ['exception' => $e]);
 
             // Return a JSON response with a generic error message
+            return response()->json(['error' => 'Validation failed', 'errors' => $validationException->errors()], 422);
+        } catch (\Exception $e) {
+            Log::error('Profile image, identity card, and user data update failed unexpectedly', ['exception' => $e]);
             return response()->json(['error' => 'An unexpected error occurred.'], 500);
         }
     }
@@ -334,11 +438,75 @@ public function logout()
 }
 
 
-    public function logouts()
+    public function geocodeAddress(Request $request)
     {
+        $user = Auth::user();
 
-        if(Auth::check()) {
-            Auth::user()->token()->revoke();
+        if (!$user) {
+            return response()->json(['error' => 'User not authenticated'], 401);
+        }
+
+        $postcode = $request->input('postcode');
+        $city = $request->input('city');
+        $country = $request->input('country');
+
+        $response = Http::get('https://nominatim.openstreetmap.org/search', [
+            'q' => $postcode . ' ' . $city . ' ' . $country,
+            'format' => 'json',
+            'addressdetails' => 1,
+        ]);
+
+        if ($response->successful()) {
+            $data = $response->json();
+
+            if (!empty($data)) {
+                $results = [];
+
+                foreach ($data as $result) {
+                    $coordinates = [
+                        'lat' => $result['lat'],
+                        'lng' => $result['lon'],
+                    ];
+
+                    $addressDetails = [
+                        'city' => $result['address']['city'] ?? $result['address']['town'] ?? null,
+                        'postcode' => $result['address']['postcode'] ?? null,
+                        'country' => $result['address']['country'] ?? null,
+                    ];
+
+                    $results[] = array_merge($coordinates, $addressDetails);
+                }
+                if (!empty($data[0])) {
+                    $firstResult = $data[0];
+                    $user->update([
+                        'latitude' => $firstResult['lat'],
+                        'longitude' => $firstResult['lon'],
+                    ]);
+                }
+
+                return $results;
+            } else {
+                return response()->json(['error' => 'No data found for the given postcode'], 404);
+            }
+        } else {
+            // Log the response content for further investigation
+            Log::error('Geocoding API Error: ' . $response->body());
+
+            return response()->json(['error' => 'Failed to retrieve data from the geocoding API'], $response->status());
+        }
+    }
+
+
+
+      //logout function
+
+    public function logout()
+    {
+        if (Auth::check()) {
+            Auth::user()->tokens->each(function ($token, $key) {
+                $token->delete();
+            });
+
             return response()->json(["status" => "success", "error" => false, "message" => "Success! You are logged out."], 200);
         }
         return response()->json(["status" => "failed", "error" => true, "message" => "Failed! You are already logged out."], 403);
@@ -352,7 +520,7 @@ public function logout()
 
     }
 
-
+    }
 
 
 }

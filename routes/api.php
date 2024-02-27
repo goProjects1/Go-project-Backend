@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\API\ForgetpasswordController;
+use App\Http\Controllers\API\TripController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\AuthController;
@@ -27,7 +29,13 @@ Route::post('/reset', [ForgetpasswordController::class, 'reset']);
 
 // Auth guided routes
 Route::middleware(['auth:sanctum'])->group(function () {
+<<<<<<< HEAD
 //    Route::put('/updateProfile', [AuthController::class, 'updateProfile']);
+=======
+    Route::put('/updateProfile', [AuthController::class, 'updateProfile']);
+    Route::post('/userImage', [AuthController::class, 'profileImage']);
+    Route::get('/ops', [AuthController::class, 'geocodeAddress']);
+>>>>>>> b586cecb5472aef7af1311eda78a3b83a245a9c0
     Route::put('/handleFileUpload/{userId}', [AuthController::class, 'handleFileUpload']);
     Route::resource('property', PropertyController::class);
     Route::get('/getUserProperty',[PropertyController::class, 'getUserProperty']);
@@ -35,9 +43,17 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/getUserSchool',[StudentController::class, 'getUserSchool']);
     Route::resource('job', JobController::class);
     Route::get('/getUserJob',[JobController::class, 'getUserJob']);
+<<<<<<< HEAD
     Route::get('/ops', [AuthController::class, 'geocodeAddress']);
     Route::get('/logout', [AuthController::class, 'logout']);
     Route::post('/updateProfile', [AuthController::class, 'profileImage']);
     Route::get('getProfile',  [AuthController::class, 'getProfile']);
+=======
+    Route::get('/logout', [AuthController::class, 'logout']);
+    Route::get('getProfile',  [AuthController::class, 'getProfile']);
+    Route::post('/create-trip', [TripController::class, 'createTrip']);
+    Route::post('/accept-trip', [TripController::class, 'acceptTrip']);
+
+>>>>>>> b586cecb5472aef7af1311eda78a3b83a245a9c0
 });
 

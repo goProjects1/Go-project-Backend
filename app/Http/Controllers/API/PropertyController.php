@@ -93,9 +93,13 @@ class PropertyController extends BaseController
             'user_id' => Auth::user()->getAuthIdentifier(),
         ]);
     }
-
-
-    public function show(int $id)
+    /**
+     * Display the specified resource.
+     *
+     * @param int $id
+     * @return Response
+     */
+    public function show(int $id): Response
     {
         // Find property by ID
         $property = Property::find($id);

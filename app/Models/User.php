@@ -8,6 +8,10 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
+/**
+ * @method static where(string $string, mixed $email)
+ * @method static selectRaw(string $string, array $array)
+ */
 class User extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
@@ -41,12 +45,13 @@ class User extends Authenticatable
         'phone_number',
         'email_verified_at',
         'password',
-	'longitude',
+        'longitude',
         'latitude',
         'address',
-	'house_number',
-
+        'house_number',
     ];
+
+
 
     /**
      * The attributes that should be hidden for serialization.
@@ -66,4 +71,16 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+
+    // Relationship: One user can have many trips as the sender
+    public function sentTrips(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Trip::class, 'sender_id');
+    }
+
+    // Relationship: One user can have many trips as the guest
+    public function receivedTrips(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(Trip::class, 'guest_id');
+    }
 }

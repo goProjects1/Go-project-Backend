@@ -88,10 +88,3 @@ class ForgetpasswordController extends BaseController
         return $this->sendResponse($user, 'Success.');
     }
 }
-
-
-
-
-
-
-
