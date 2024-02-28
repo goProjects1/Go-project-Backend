@@ -27,6 +27,7 @@ class TripScheduleController extends BaseController
             'destination' => 'required',
             'variable_distance' => 'required',
             'description' => 'required',
+            'user_id' => 'required',
         ]);
 
         $tripScheduleData = $request->all();
@@ -37,6 +38,8 @@ class TripScheduleController extends BaseController
             $days = $request->input('day');
             $toTimes = $request->input('to_time');
 
+            $createdTripSchedules = [];
+
             foreach ($days as $index => $day) {
                 $dynamicData = [
                     'usertype' => $tripScheduleData['usertype'],
@@ -45,6 +48,7 @@ class TripScheduleController extends BaseController
                     'variable_distance' => $tripScheduleData['variable_distance'],
                     'description' => $tripScheduleData['description'],
                     'user_id' => $tripScheduleData['user_id'],
+                    'plan_time' => $request->input('plan_time'),  // Include plan_time in the payload
                     'day' => $day,
                     'to_time' => $toTimes[$index],
                     'frequency' => $tripScheduleData['frequency'],
@@ -52,15 +56,18 @@ class TripScheduleController extends BaseController
                     'pay_option' => $tripScheduleData['pay_option'],
                 ];
 
-                $createdTripSchedule = $this->tripScheduleService->createTripSchedule($dynamicData);
+                $createdTripSchedules[] = $this->tripScheduleService->createTripSchedule($dynamicData);
             }
+
+            return $this->sendResponse($createdTripSchedules, 'Trips created successfully');
         } else {
             // If plan_time is fixed, create a single entry
             $createdTripSchedule = $this->tripScheduleService->createTripSchedule($tripScheduleData);
-        }
 
-        return $this->sendResponse($createdTripSchedule, 'Trip created successfully');
+            return $this->sendResponse($createdTripSchedule, 'Trip created successfully');
+        }
     }
+
 
 
     public function updateTrip(Request $request, $id): \Illuminate\Http\JsonResponse
@@ -70,6 +77,7 @@ class TripScheduleController extends BaseController
             'pickUp' => 'required',
             'destination' => 'required',
             'day' => 'required',
+            'plan_time' => 'required',
             'variable_distance' => 'required',
             'frequency' => 'required',
             'to_time' => 'required',
