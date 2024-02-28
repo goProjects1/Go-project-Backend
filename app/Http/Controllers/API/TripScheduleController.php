@@ -56,7 +56,7 @@ class TripScheduleController extends BaseController
                 ];
 
                 $createdTripSchedule = $this->tripScheduleService->createTripSchedule($dynamicData);
-                $createdTripSchedules[] = array_merge($createdTripSchedule, ['day' => $day]);
+                $createdTripSchedules[] = array_merge($createdTripSchedule->toArray(), ['day' => $day]);
             }
 
             return $this->sendResponse($createdTripSchedules, 'Trips created successfully');
@@ -64,9 +64,10 @@ class TripScheduleController extends BaseController
 
             $createdTripSchedule = $this->tripScheduleService->createTripSchedule($tripScheduleData);
 
-            return $this->sendResponse($createdTripSchedule, 'Trip scheduled successfully');
+            return $this->sendResponse($createdTripSchedule->toArray(), 'Trip scheduled successfully');
         }
     }
+
 
 
 
