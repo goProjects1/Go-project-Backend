@@ -45,13 +45,8 @@ class StudentController extends BaseController
         return response()->json($userSchool);
     }
 
-    /**
-     * Store a newly created school in storage.
-     *
-     * @param Request $request
-     * @return Response
-     */
-    public function store(Request $request): Response
+
+    public function store(Request $request)
     {
         try {
             // Validation rules
@@ -98,14 +93,7 @@ class StudentController extends BaseController
         return $this->sendResponse(new StudentResource($school), 'School fetched.');
     }
 
-    /**
-     * Update the specified school in storage.
-     *
-     * @param Request $request
-     * @param int $schoolId
-     * @return Response
-     */
-    public function update(Request $request, $schoolId): Response
+    public function update(Request $request, $schoolId)
     {
         try {
             // Find school by ID
@@ -117,7 +105,7 @@ class StudentController extends BaseController
                 'course' => $request->input('course', $school->course),
                 'student_no' => $request->input('student_no', $school->student_no),
             ]);
-
+		$school->user_id = Auth::user()->getAuthIdentifier();
             // Return a success response with the updated school
             return $this->sendResponse(new StudentResource($school), 'School updated.');
         } catch (\Exception $e) {

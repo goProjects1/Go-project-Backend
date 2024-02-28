@@ -45,7 +45,7 @@ class PropertyController extends BaseController
     }
 
 
-    public function store(Request $request)
+    	 public function store(Request $request)
     {
         $data = $request->json()->all();
 
@@ -93,7 +93,6 @@ class PropertyController extends BaseController
             'user_id' => Auth::user()->getAuthIdentifier(),
         ]);
     }
-
     /**
      * Display the specified resource.
      *
