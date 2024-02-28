@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-//use App\Models\;
+use App\Models\TripShedule;
 
 
 /**
@@ -14,6 +14,6 @@ class TripSchedule
 {
     public function createTripSchedule($data)
     {
-        return TripSchedule::create($data);
+        return TripShedule::create($data);
     }
 }
