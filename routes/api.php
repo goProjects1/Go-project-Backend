@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\API\ForgetpasswordController;
 use App\Http\Controllers\API\TripController;
+use App\Http\Controllers\API\TripScheduleController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\API\AuthController;
@@ -42,5 +43,10 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('getProfile',  [AuthController::class, 'getProfile']);
     Route::post('/create-trip', [TripController::class, 'createTrip']);
     Route::post('/accept-trip', [TripController::class, 'acceptTrip']);
+    Route::post('/create-scheduleTrip', [TripScheduleController::class, 'scheduleTrip']);
+    Route::get('/get-scheduleTrip-by-id/{id}', [TripScheduleController::class, 'getTripById']);
+    Route::get('/get-all-scheduleTrip-perUser', [TripScheduleController::class, 'getTrip']);
+    Route::post('/update-scheduleTrip/{id}', [TripScheduleController::class, 'updateTrip']);
+    Route::delete('/delete-scheduleTrip/{id}', [TripScheduleController::class, 'deleteTrip']);
 
 });

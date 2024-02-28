@@ -16,18 +16,13 @@ class TripService
 {
     public function createTripAndNotifyUsers(Trip $trip): Trip
     {
-        // Fill the instance with the provided data
         $trip->save();
 
-       // $this->saveDistanceForTrip($trip);
-
-        // Log information about users within distance
         $this->logUsersWithinDistance($trip);
 
         // Send trip notifications to users within distance
         $this->sendTripNotifications($trip);
 
-        // Return the created trip
         return $trip;
     }
 
