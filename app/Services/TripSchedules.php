@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use App\Models\TripShedule;
+use App\Models\TripSchedule;
 
 
 /**
@@ -10,10 +10,10 @@ use App\Models\TripShedule;
  * @method static findOrFail($id)
  * @method static where(string $string, mixed $getAuthIdentifier)
  */
-class TripSchedule
+class TripSchedules
 {
     public function createTripSchedule($data)
     {
-        return TripShedule::create($data);
+        return TripSchedule::create($data);
     }
 }
