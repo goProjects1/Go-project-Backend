@@ -18,7 +18,7 @@ class PropertyController extends BaseController
     /**
      * Display a listing of the resource.
      *
-     * @return Response
+     * @return JsonResponse
      */
     public function index()
     {
@@ -97,9 +97,9 @@ class PropertyController extends BaseController
      * Display the specified resource.
      *
      * @param int $id
-     * @return Response
+     * @return JsonResponse
      */
-    public function show(int $id): Response
+    public function show(int $id): JsonResponse
     {
         // Find property by ID
         $property = Property::find($id);
@@ -137,9 +137,9 @@ class PropertyController extends BaseController
      * Remove the specified resource from storage.
      *
      * @param Property $property
-     * @return Response
+     * @return JsonResponse
      */
-    public function destroy(Property $property): Response
+    public function destroy(Property $property): JsonResponse
     {
         // Delete the property
         $property->delete();

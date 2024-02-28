@@ -19,7 +19,7 @@ class TripScheduleController extends BaseController
     {
         $this->tripScheduleService = $tripScheduleService;
     }
-    public function scheduleTrip(Request $request): \Illuminate\Http\Response
+    public function scheduleTrip(Request $request): \Illuminate\Http\JsonResponse
     {
         $request->validate([
             'usertype' => 'required',
@@ -63,7 +63,7 @@ class TripScheduleController extends BaseController
     }
 
 
-    public function updateTrip(Request $request, $id): \Illuminate\Http\Response
+    public function updateTrip(Request $request, $id): \Illuminate\Http\JsonResponse
     {
         $validatedData = $request->validate([
             'type' => 'required',
@@ -84,7 +84,7 @@ class TripScheduleController extends BaseController
         return $this->sendResponse($tripSchedule, 'Trip updated successfully');
     }
 
-    public function deleteTrip($id): \Illuminate\Http\Response
+    public function deleteTrip($id): \Illuminate\Http\JsonResponse
     {
         $tripSchedule = TripSchedule::findOrFail($id);
         $tripSchedule->delete();
@@ -92,14 +92,14 @@ class TripScheduleController extends BaseController
         return $this->sendResponse(null, 'Trip deleted successfully');
     }
 
-    public function getTrip(): \Illuminate\Http\Response
+    public function getTrip(): \Illuminate\Http\JsonResponse
     {
         $tripSchedule = TripSchedule::where('user_id', Auth::user()->getAuthIdentifier());
 
         return $this->sendResponse($tripSchedule, 'Trip details retrieved successfully');
     }
 
-    public function getTripById($id): \Illuminate\Http\Response
+    public function getTripById($id): \Illuminate\Http\JsonResponse
     {
         $tripSchedule = TripSchedule::findOrFail($id);
 
