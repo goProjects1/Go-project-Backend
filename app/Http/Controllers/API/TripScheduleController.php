@@ -63,8 +63,8 @@ class TripScheduleController extends BaseController
         } else {
 
             $createdTripSchedule = $this->tripScheduleService->createTripSchedule($tripScheduleData);
+            return $this->sendResponse(array_merge($createdTripSchedule->toArray(), ['day' => $request->input('day')]), 'Trip scheduled successfully');
 
-            return $this->sendResponse($createdTripSchedule->toArray(), 'Trip scheduled successfully');
         }
     }
 
