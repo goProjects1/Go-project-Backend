@@ -27,7 +27,6 @@ class TripScheduleController extends BaseController
             'destination' => 'required',
             'variable_distance' => 'required',
             'description' => 'required',
-
         ]);
 
         $tripScheduleData = $request->all();
@@ -48,7 +47,7 @@ class TripScheduleController extends BaseController
                     'variable_distance' => $tripScheduleData['variable_distance'],
                     'description' => $tripScheduleData['description'],
                     'user_id' => $tripScheduleData['user_id'],
-                    'plan_time' => $request->input('plan_time'),  // Include plan_time in the payload
+                    'plan_time' => $request->input('plan_time'),
                     'day' => $day,
                     'to_time' => $toTimes[$index],
                     'frequency' => $tripScheduleData['frequency'],
@@ -56,15 +55,16 @@ class TripScheduleController extends BaseController
                     'pay_option' => $tripScheduleData['pay_option'],
                 ];
 
-                $createdTripSchedules[] = $this->tripScheduleService->createTripSchedule($dynamicData);
+                $createdTripSchedule = $this->tripScheduleService->createTripSchedule($dynamicData);
+                $createdTripSchedules[] = array_merge($createdTripSchedule, ['day' => $day]);
             }
 
             return $this->sendResponse($createdTripSchedules, 'Trips created successfully');
         } else {
-            // If plan_time is fixed, create a single entry
+
             $createdTripSchedule = $this->tripScheduleService->createTripSchedule($tripScheduleData);
 
-            return $this->sendResponse($createdTripSchedule, 'Trip created successfully');
+            return $this->sendResponse($createdTripSchedule, 'Trip scheduled successfully');
         }
     }
 
