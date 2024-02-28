@@ -27,7 +27,7 @@ class TripScheduleController extends BaseController
             'destination' => 'required',
             'variable_distance' => 'required',
             'description' => 'required',
-            'user_id' => 'required',
+            'user_id' => Auth::user()->getAuthIdentifier(),
         ]);
 
         $tripScheduleData = $request->all();
