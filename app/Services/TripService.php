@@ -45,14 +45,14 @@ class TripService
         }
     }
 
-    private function getUsersWithinDistance(Trip $trip): \Illuminate\Database\Eloquent\Collection
+    private function getUsersWithinDistance(Trip $trip): \Illuminate\Support\Collection
     {
         // Get the authenticated user
         $user = Auth::user();
 
         // Check if user's latitude and longitude are available
         if (!$user || !$user->latitude || !$user->longitude) {
-            return collect(); // Return an empty collection or handle the error as needed
+            return collect();
         }
 
         $variableDistance = $trip->variable_distance;

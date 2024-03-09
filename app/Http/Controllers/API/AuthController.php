@@ -14,7 +14,11 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\ValidationException;
 use Illuminate\Http\JsonResponse;
-use Intervention\Image\Facades\Image; // Add this line for Image class
+use Intervention\Image\Facades\Image;
+use Storage;
+
+
+// Add this line for Image class
 
 class AuthController extends BaseController
 {
@@ -96,7 +100,7 @@ class AuthController extends BaseController
         }
     }
 
-    public function updateProfile(Request $request)
+    public function updateProfile(Request $request): JsonResponse
     {
         // Validate the request data
         $validator = Validator::make($request->all(), [
@@ -134,7 +138,7 @@ class AuthController extends BaseController
             $resizedImage = Image::make($image)->fit(600, 600)->encode();
 
             // Store the image in the storage/app/public directory
-            \Storage::disk('public')->put($imageName, $resizedImage);
+            Storage::disk('public')->put($imageName, $resizedImage);
 
             // Update the user's identity_card field with the image path
             $user->identity_card = $imageName;
@@ -149,7 +153,7 @@ class AuthController extends BaseController
             $resizedImage = Image::make($image)->fit(300, 300)->encode();
 
             // Store the image in the storage/app/public directory
-            \Storage::disk('public')->put($imageName, $resizedImage);
+            Storage::disk('public')->put($imageName, $resizedImage);
 
             // Update the user's profile_image field with the image path
             $user->profile_image = $imageName;
