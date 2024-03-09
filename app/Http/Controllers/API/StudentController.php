@@ -16,9 +16,9 @@ class StudentController extends BaseController
     /**
      * Display a listing of the students.
      *
-     * @return Response
+     * @return JsonResponse
      */
-    public function index(): Response
+    public function index(): JsonResponse
     {
         // Retrieve all students
         $students = Student::all();
@@ -77,9 +77,9 @@ class StudentController extends BaseController
      * Display the specified school.
      *
      * @param int $id
-     * @return Response
+     * @return JsonResponse
      */
-    public function show($id): Response
+    public function show($id): JsonResponse
     {
         // Find school by ID
         $school = Student::find($id);
@@ -118,9 +118,9 @@ class StudentController extends BaseController
      * Remove the specified school from storage.
      *
      * @param Student $school
-     * @return Response
+     * @return JsonResponse
      */
-    public function destroy(Student $school): Response
+    public function destroy(Student $school): JsonResponse
     {
         // Delete the school
         $school->delete();

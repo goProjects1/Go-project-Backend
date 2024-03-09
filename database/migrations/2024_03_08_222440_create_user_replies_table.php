@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class AddLonandlatUsersTable extends Migration
+class CreateUserRepliesTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,12 +13,12 @@ class AddLonandlatUsersTable extends Migration
      */
     public function up()
     {
-        Schema::table('users', function (Blueprint $table) {
-            //
-	    $table->string('latitude')->nullable();
-            $table->string('longitude')->nullable();
-            $table->string('address')->nullable();
-
+        Schema::create('user_replies', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('feedback_id');
+            $table->longText('description')->nullable();
+            $table->softDeletes();
+            $table->timestamps();
         });
     }
 
@@ -29,8 +29,6 @@ class AddLonandlatUsersTable extends Migration
      */
     public function down()
     {
-        Schema::table('users', function (Blueprint $table) {
-            //
-        });
+        Schema::dropIfExists('user_replies');
     }
 }

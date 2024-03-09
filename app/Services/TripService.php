@@ -16,18 +16,13 @@ class TripService
 {
     public function createTripAndNotifyUsers(Trip $trip): Trip
     {
-        // Fill the instance with the provided data
         $trip->save();
 
-       // $this->saveDistanceForTrip($trip);
-
-        // Log information about users within distance
         $this->logUsersWithinDistance($trip);
 
         // Send trip notifications to users within distance
         $this->sendTripNotifications($trip);
 
-        // Return the created trip
         return $trip;
     }
 
@@ -50,14 +45,14 @@ class TripService
         }
     }
 
-    private function getUsersWithinDistance(Trip $trip): \Illuminate\Database\Eloquent\Collection
+    private function getUsersWithinDistance(Trip $trip): \Illuminate\Support\Collection
     {
         // Get the authenticated user
         $user = Auth::user();
 
         // Check if user's latitude and longitude are available
         if (!$user || !$user->latitude || !$user->longitude) {
-            return collect(); // Return an empty collection or handle the error as needed
+            return collect();
         }
 
         $variableDistance = $trip->variable_distance;

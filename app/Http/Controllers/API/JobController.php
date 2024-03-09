@@ -16,9 +16,9 @@ class JobController extends BaseController
     /**
      * Display a listing of the jobs.
      *
-     * @return Response
+     * @return JsonResponse
      */
-    public function index(): Response
+    public function index(): JsonResponse
     {
         // Retrieve all jobs
         $jobs = Job::all();
@@ -45,7 +45,7 @@ class JobController extends BaseController
         return response()->json($userJob);
     }
 
-    
+
     public function store(Request $request)
     {
         try {
@@ -76,9 +76,9 @@ class JobController extends BaseController
      * Display the specified job.
      *
      * @param int $id
-     * @return Response
+     * @return JsonResponse
      */
-    public function show(int $id): Response
+    public function show(int $id): JsonResponse
     {
         // Find job by ID
         $job = Job::find($id);
@@ -119,9 +119,9 @@ class JobController extends BaseController
      * Remove the specified job from storage.
      *
      * @param Job $job
-     * @return Response
+     * @return JsonResponse
      */
-    public function destroy(Job $job): Response
+    public function destroy(Job $job): JsonResponse
     {
         // Delete the job
         $job->delete();
