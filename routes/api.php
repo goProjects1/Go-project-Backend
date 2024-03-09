@@ -31,8 +31,6 @@ Route::post('/reset', [ForgetpasswordController::class, 'reset']);
 // Auth guided routes
 Route::middleware(['auth:sanctum'])->group(function () {
 
-    Route::post('/updateProfile', [AuthController::class, 'updateProfile']);
-    Route::post('/userImage', [AuthController::class, 'profileImage']);
     Route::get('/ops', [AuthController::class, 'geocodeAddress']);
     Route::put('/handleFileUpload/{userId}', [AuthController::class, 'handleFileUpload']);
     Route::resource('property', PropertyController::class);
@@ -43,7 +41,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/getUserJob',[JobController::class, 'getUserJob']);
     Route::get('/ops', [AuthController::class, 'geocodeAddress']);
     Route::get('/logout', [AuthController::class, 'logout']);
-  //  Route::post('/updateProfile', [AuthController::class, 'profileImage']);
+    Route::post('/updateProfile', [AuthController::class, 'profileImage']);
     Route::get('getProfile',  [AuthController::class, 'getProfile']);
     Route::get('/logout', [AuthController::class, 'logout']);
     Route::post('/create-trip', [TripController::class, 'createTrip']);
