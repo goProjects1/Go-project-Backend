@@ -53,10 +53,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::delete('/delete-scheduleTrip/{id}', [TripScheduleController::class, 'deleteTrip']);
     Route::post('/feedback', [FeedbackController::class, 'store']);
     Route::post('/feedback/{id}/reply', [FeedbackController::class, 'reply']);
-    Route::post('/admin-reply/{id}/user-reply', [FeedbackController::class, 'userReply']);
-
-
-
+    Route::post('/admin-reply/{id}/{feedback_id}/user-reply', [FeedbackController::class, 'userReply']);
+    Route::get('/feedbacks', [FeedbackController::class, 'index']);
+    Route::get('/feedbacks/{id}', [FeedbackController::class, 'show']);
+    Route::put('/feedbacks/{id}', [FeedbackController::class, 'update']);
+    Route::delete('/feedbacks/{id}', [FeedbackController::class, 'destroy']);
 });
 
 

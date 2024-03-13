@@ -3,68 +3,91 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use App\Services\Feedbacks;
 use App\Http\Controllers\API\BaseController as BaseController;
+use App\Mail\AdminMail;
+use App\Mail\UserReplyMail;
+use Illuminate\Http\Request;
+use App\Services\FeedbackService;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
+use App\Mail\FeedbackMail;
 
 class FeedbackController extends BaseController
 {
-    //
+    protected $feedbackService;
 
-    private $feedbackService;
-
-    public function __construct(Feedbacks $feedbackService)
+    public function __construct(FeedbackService $feedbackService)
     {
+
         $this->feedbackService = $feedbackService;
     }
 
-    public function store(Request $request)
+    public function index(): \Illuminate\Http\JsonResponse
     {
-        $request->validate([
-            'description' => 'required',
-            'severity' => 'required',
-            'status' => 'required',
+        $feedbacks = $this->feedbackService->getAllFeedbacks();
+        return response()->json(['message' => 'Success', 'data' => $feedbacks], 200);
+    }
+
+    public function store(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $validated = $request->validate([
+            'description' => 'required|string',
+            'severity' => 'required|string',
             'rating' => 'required|integer|min:1|max:5',
         ]);
-        $adminP = User::where('usertype', 'admin')->first();
-        $data = $request->only(['user_id', 'description', 'rating', 'severity']);
-        $data->user_id = Auth::user()->getAuthIdentifier();
-        $feedback = $this->feedbackService->storeFeedback($data);
-        $subject = 'GOPROJECT: User Feedback';
-        Mail::send('Email.feedback', $data, function ($message) use ($adminP, $request, $subject) {
-            $message->to($adminP)->subject($subject);
-        });
-        return $this->sendResponse($feedback, 'Feedback submitted successfully');
 
+        $validated['user_id'] = Auth::id();
+        $validated['status'] = 'progress';
+
+        $feedback = $this->feedbackService->storeFeedback($validated);
+        $adm = "projectgo295@gmail.com";
+        Mail::to($adm)->send(new FeedbackMail($feedback));
+
+        return response()->json(['message' => 'Feedback submitted successfully', 'data' => $feedback], 201);
     }
 
-    public function reply(Request $request, $id)
+    public function update(Request $request, $id): \Illuminate\Http\JsonResponse
     {
-        $request->validate([
-            'admin_comment' => 'required',
-        ]);
-
-        $adminComment = $request->input('admin_comment');
-
-        $adminReply = $this->feedbackService->replyToFeedback($id, $adminComment);
-        return $this->sendResponse($adminReply, 'Admin reply submitted successfully');
-
-
+        try {
+            $feedback = $this->feedbackService->updateFeedback($id, $request->all());
+            return $this->sendResponse($feedback, 'Feedback updated successfully', 200);
+        } catch (\Exception $e) {
+            return $this->sendError('Error updating feedback.', $e->getMessage(), 500);
+        }
     }
 
-    public function userReply(Request $request, $id)
+    public function destroy($id): \Illuminate\Http\JsonResponse
     {
-        $request->validate([
-            'user_reply' => 'required',
-        ]);
-
-        $userReply = $request->input('user_reply');
-
-        $userReply = $this->feedbackService->userReplyToAdmin($id, $userReply);
-
-        return $this->sendResponse($userReply, 'User reply submitted successfully');
+        try {
+            $this->feedbackService->deleteFeedback($id);
+            return $this->sendResponse([], 'Feedback deleted successfully', 200);
+        } catch (\Exception $e) {
+            return $this->sendError('Error deleting feedback.', $e->getMessage(), 500);
+        }
     }
 
+
+    public function show($id): \Illuminate\Http\JsonResponse
+    {
+        $feedback = $this->feedbackService->getFeedbackById($id);
+        return response()->json(['message' => 'Success', 'data' => $feedback], 200);
+    }
+
+    public function reply(Request $request, $id): \Illuminate\Http\JsonResponse
+    {
+        $validated = $request->validate(['description' => 'required|string']);
+        $adminReply = $this->feedbackService->replyToFeedback($id, $validated['description']);
+        $adm = "projectgo295@gmail.com";
+        Mail::to($adm)->send(new AdminMail($adminReply));
+        return response()->json(['message' => 'Admin reply submitted successfully', 'data' => $adminReply], 201);
+    }
+
+    public function userReply(Request $request, $feedback_id, $id): \Illuminate\Http\JsonResponse
+    {
+        $validated = $request->validate(['description' => 'required|string']);
+        $userReply = $this->feedbackService->userReplyToAdmin($id, $validated['description']);
+        $adm = "projectgo295@gmail.com";
+        Mail::to($adm)->send(new userReplyMail($userReply));
+        return response()->json(['message' => 'User reply submitted successfully', 'data' => $userReply], 201);
+    }
 }
