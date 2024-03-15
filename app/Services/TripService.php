@@ -45,8 +45,8 @@ class TripService
                 if (isset($user->email) && is_string($user->email)) {
                     // Fetch property details for the trip
                     $property = Property::findOrFail($trip->property_id);
-
-                    Mail::to($user->email)->send(new TripMail($trip, $inviteLink, $property->registration_no, $property->type));
+                    $name = Auth::user()->last_name;
+                    Mail::to($user->email)->send(new TripMail($trip, $inviteLink, $property->registration_no, $property->type, $name));
                     Log::info("Invitation sent to {$user->email} for trip {$trip->id}");
                 }
             } catch (\Exception $e) {
