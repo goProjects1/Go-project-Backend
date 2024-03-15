@@ -43,7 +43,12 @@ class TripController extends BaseController
         ]);
 
         // Fetch property details based on the provided property_id
-        $property = Property::findOrFail($request->property_id);
+        $property = Property::where('id', $request->property_id)
+            ->where('user_id', Auth::user()->getAuthIdentifier())
+            ->first();
+        if (!$property) {
+            return response()->json(['error' => 'Property does not belong to this user'], 403);
+        }
 
         $trip = new Trip($request->all());
         $trip->sender_id = Auth::user()->getAuthIdentifier();
@@ -55,8 +60,8 @@ class TripController extends BaseController
             'property_plate_number' => $property->registration_no
         ];
         return $this->sendResponse($responseData, 'Trip created successfully');
-
     }
+
 
     public function acceptTrip(Request $request): \Illuminate\Http\JsonResponse
     {
