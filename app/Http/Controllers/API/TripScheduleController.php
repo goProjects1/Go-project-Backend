@@ -19,6 +19,7 @@ class TripScheduleController extends BaseController
     {
         $this->tripScheduleService = $tripScheduleService;
     }
+
     public function scheduleTrip(Request $request): \Illuminate\Http\JsonResponse
     {
         $request->validate([
@@ -32,10 +33,11 @@ class TripScheduleController extends BaseController
         $tripScheduleData = $request->all();
         $tripScheduleData['user_id'] = Auth::user()->getAuthIdentifier();
 
-        if ($request->input('plan_time') == 'dynamic') {
-            // If plan_time is dynamic, create entries for each day with respective to_time
-            $days = $request->input('day');
-            $toTimes = $request->input('to_time');
+        $planTime = $request->input('plan_time');
+        $days = (array) $request->input('day');
+        $toTimes = (array) $request->input('to_time');
+
+        if ($planTime == 'dynamic') {
 
             $createdTripSchedules = [];
 
@@ -47,7 +49,7 @@ class TripScheduleController extends BaseController
                     'variable_distance' => $tripScheduleData['variable_distance'],
                     'description' => $tripScheduleData['description'],
                     'user_id' => $tripScheduleData['user_id'],
-                    'plan_time' => $request->input('plan_time'),
+                    'plan_time' => $planTime,
                     'day' => $day,
                     'to_time' => $toTimes[$index],
                     'frequency' => $tripScheduleData['frequency'],
@@ -62,12 +64,13 @@ class TripScheduleController extends BaseController
             return $this->sendResponse($createdTripSchedules, 'Trips created successfully');
         } else {
 
-            $createdTripSchedule = $this->tripScheduleService->createTripSchedule($tripScheduleData);
-            return $this->sendResponse(array_merge($createdTripSchedule->toArray(), ['day' => $request->input('day')]), 'Trip scheduled successfully');
+            $tripScheduleData['day'] = $days[0];
+            $tripScheduleData['to_time'] = $toTimes[0];
 
+            $createdTripSchedule = $this->tripScheduleService->createTripSchedule($tripScheduleData);
+            return $this->sendResponse(array_merge($createdTripSchedule->toArray(), ['day' => $days[0]]), 'Trip scheduled successfully');
         }
     }
-
 
 
 
