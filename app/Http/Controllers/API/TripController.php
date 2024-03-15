@@ -4,6 +4,7 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\API\BaseController as BaseController;
+use App\Models\Property;
 use App\Services\TripService;
 use http\Client;
 use Illuminate\Http\Request;
@@ -38,22 +39,32 @@ class TripController extends BaseController
             'charges' => 'required',
             'available_seat' => 'required',
             'description' => 'required',
+            'property_id' => 'required'
         ]);
-        // Create trip and notify users within the variable distance
+
+        // Fetch property details based on the provided property_id
+        $property = Property::findOrFail($request->property_id);
+
         $trip = new Trip($request->all());
         $trip->sender_id = Auth::user()->getAuthIdentifier();
         $this->tripService->createTripAndNotifyUsers($trip);
-        return $this->sendResponse($trip, 'Trip created successfully');
+
+        $responseData = [
+            'trip' => $trip,
+            'property_name' => $property->type,
+            'property_plate_number' => $property->registration_no
+        ];
+        return $this->sendResponse($responseData, 'Trip created successfully');
 
     }
 
-    public function acceptTrip(Request $request, $tripId, $userId): \Illuminate\Http\JsonResponse
+    public function acceptTrip(Request $request): \Illuminate\Http\JsonResponse
     {
-        // Implement logic to handle user acceptance of the trip
+        $tripId = $request->input('trip_id');
         $trip = Trip::findOrFail($tripId);
 
-        if ($this->tripService->acceptTrip($trip, $userId)) {
-            return response()->json(['message' => 'Trip accepted successfully']);
+        if ($this->tripService->acceptTrip($trip)) {
+            return $this->sendResponse($trip, 'Trip accepted successfully');
         }
 
         return response()->json(['message' => 'User is not within the specified distance'], 400);
