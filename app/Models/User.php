@@ -11,6 +11,7 @@ use Laravel\Sanctum\HasApiTokens;
 /**
  * @method static where(string $string, mixed $email)
  * @method static selectRaw(string $string, array $array)
+ * @method static findOrFail($userId)
  */
 class User extends Authenticatable
 {
@@ -49,6 +50,7 @@ class User extends Authenticatable
         'latitude',
         'address',
         'house_number',
+        'usertype',
     ];
 
 
@@ -72,15 +74,19 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
     ];
 
-    // Relationship: One user can have many trips as the sender
     public function sentTrips(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(Trip::class, 'sender_id');
     }
 
-    // Relationship: One user can have many trips as the guest
+
     public function receivedTrips(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(Trip::class, 'guest_id');
+    }
+
+    public function trips(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(Trip::class);
     }
 }
