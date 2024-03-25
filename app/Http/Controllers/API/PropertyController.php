@@ -69,7 +69,6 @@ class PropertyController extends BaseController
         } else {
             return isset($data['type'], $data['registration_no'], $data['license_no']);
         }
-
         return true;
     }
 
@@ -111,7 +110,6 @@ class PropertyController extends BaseController
 
         return $this->sendResponse(new PropertyResource($property), 'Property fetched.');
     }
-
 
     public function update(Request $request, int $propertyId)
     {

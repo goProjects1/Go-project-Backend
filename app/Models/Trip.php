@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 /**
  * @method static findOrFail($tripId)
+ * @method static where(string $string, mixed $tripId)
  * @property mixed $sender_id
  * @property mixed $variable_distance
  */

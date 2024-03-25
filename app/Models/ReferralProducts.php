@@ -2,21 +2,22 @@
 
 namespace App\Models;
 
-
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * @method static create(array $array)
+ * @property mixed $user_id
+ * @property mixed $service
+ * @property mixed $point
  */
-class UserReply extends Model
+class ReferralProducts extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'description',
-        'feedback_id',
-        'admin_id',
+        'service',
+        'point',
+        'user_id'
 
     ];
 }

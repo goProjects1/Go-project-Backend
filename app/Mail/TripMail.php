@@ -1,6 +1,5 @@
 <?php
 
-
 namespace App\Mail;
 
 use App\Models\Trip;
@@ -13,15 +12,35 @@ class TripMail extends Mailable
     use Queueable, SerializesModels;
 
     public $trip;
+    public $inviteLink;
+    public $registrationNo;
+    public $type;
+    public $name;
 
-    public function __construct(Trip $trip)
+    /**
+     * Create a new message instance.
+     *
+     * @return void
+     */
+    public function __construct($trip, $inviteLink, $registrationNo, $type, $name)
     {
         $this->trip = $trip;
+        $this->inviteLink = $inviteLink;
+        $this->registrationNo = $registrationNo;
+        $this->type = $type;
+        $this->name = $name;
     }
 
     public function build(): TripMail
     {
-        return $this->view('Email.trip');
+        return $this
+            ->subject('Notification')
+            ->view('Email.trip', [
+                'trip' => $this->trip,
+                'inviteLink' => $this->inviteLink,
+                'registrationNo' => $this->registrationNo,
+                'type' => $this->type,
+                'driver_name' => $this->name
+            ]);
     }
 }
-
