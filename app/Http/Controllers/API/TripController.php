@@ -4,7 +4,10 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\API\BaseController as BaseController;
+use App\Models\Decline;
 use App\Models\Property;
+use App\Models\ReferralSetting;
+use App\Services\ReferralService;
 use App\Services\TripService;
 use http\Client;
 use Illuminate\Http\Request;
@@ -20,11 +23,11 @@ class TripController extends BaseController
 {
     protected $tripService;
 
-    public function __construct(TripService $tripService)
+    public function __construct(TripService $tripService, ReferralService $referral)
     {
         $this->tripService = $tripService;
+        $this->referral = $referral;
     }
-
     public function createTrip(Request $request)
     {
         // Validate the request data as needed
@@ -52,7 +55,14 @@ class TripController extends BaseController
 
         $trip = new Trip($request->all());
         $trip->sender_id = Auth::user()->getAuthIdentifier();
-        $this->tripService->createTripAndNotifyUsers($trip);
+        $this->tripService->notifyUsersAndSaveTrip($trip);
+        $modelType = "Create-Trip";
+        $referralSet = ReferralSetting::where('status', 'active')
+            ->latest('updated_at')
+            ->first();
+        if ($referralSet) {
+            $this->referral->checkSettingEnquiry($modelType);
+        }
 
         $responseData = [
             'trip' => $trip,
@@ -61,7 +71,6 @@ class TripController extends BaseController
         ];
         return $this->sendResponse($responseData, 'Trip created successfully');
     }
-
 
     public function acceptTrip(Request $request): \Illuminate\Http\JsonResponse
     {
@@ -74,4 +83,38 @@ class TripController extends BaseController
 
         return response()->json(['message' => 'User is not within the specified distance'], 400);
     }
+    public function declineTrip(Request $request): \Illuminate\Http\JsonResponse
+    {
+        $inviteLink = $request->input('inviteLink');
+
+        if (strpos($inviteLink, 'action=decline') !== false) {
+            // Extract the token from the inviteLink
+            $query = parse_url($inviteLink, PHP_URL_QUERY);
+            parse_str($query, $params);
+            $tripId = $params['tripId'];
+
+            $invitation = Trip::where('id', $tripId)->first();
+
+            if ($invitation) {
+                // Update the status column to decline
+                $invitation->status = 'decline';
+                $invitation->save();
+
+                // Create a Decline record if needed
+                $trip = Decline::create([
+                    'reason' => $request->input('reason'),
+                    'trip_id' => $invitation->id,
+                    'user_id' => Auth::user()->getAuthIdentifier(),
+                ]);
+                return $this->sendResponse($trip, 'Trip declined successfully');
+
+            } else {
+                return response()->json(['error' => 'Invalid Trip Id'], 400);
+            }
+        } else {
+            return response()->json(['error' => 'Invalid action'], 400);
+        }
+    }
+
+
 }
