@@ -7,18 +7,20 @@ use Illuminate\Database\Eloquent\Model;
 
 /**
  * @method static create(array $array)
- * @method static findOrFail($replyId)
- * @method static where(string $string, $replyId)
  */
-class AdminReply extends Model
+class Payment extends Model
 {
     use HasFactory;
 
     protected $fillable = [
-        'description',
-        'feedback_id',
-        'admin_id',
-        'user_id'
-    ];
 
+        'user_id',
+        'passenger_id',
+        'variable_distance',
+        'trip_id',
+        'unique_code',
+        'email',
+        'split_method_id',
+        'amount'
+    ];
 }
