@@ -65,7 +65,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/logout', [AuthController::class, 'logout']);
     Route::post('/create-trip', [TripController::class, 'createTrip']);
     Route::put('/accept-trip', [TripController::class, 'acceptTrip']);
-    Route::put('/decline-trip', [TripController::class, 'declineTrip']);
+    Route::post('/decline-trip', [TripController::class, 'declineTrip']);
     Route::post('/create-scheduleTrip', [TripScheduleController::class, 'scheduleTrip']);
     Route::get('/get-scheduleTrip-by-id/{id}', [TripScheduleController::class, 'getTripById']);
     Route::get('/get-all-scheduleTrip-perUser', [TripScheduleController::class, 'getTrip']);

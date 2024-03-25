@@ -97,7 +97,7 @@ class TripController extends BaseController
 
             if ($invitation) {
                 // Update the status column to decline
-                $invitation->status = 'decline';
+                $invitation->trip_status = 'decline';
                 $invitation->save();
 
                 // Create a Decline record if needed
