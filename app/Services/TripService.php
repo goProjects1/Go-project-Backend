@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Mail\TripDecline;
 use App\Mail\TripNotification;
 use App\Models\Property;
 use App\Models\Trip;
@@ -16,46 +17,41 @@ use Illuminate\Http\Response;
 
 class TripService
 {
-    public function createTripAndNotifyUsers(Trip $trip): Trip
+    public function notifyUsersAndSaveTrip(Trip $trip): void
     {
-        $trip->save();
-
-        $this->logUsersWithinDistance($trip);
-
-        // Send trip notifications to users within distance
-        $this->sendTripNotifications($trip);
-
-        return $trip;
-    }
-
-    private function logUsersWithinDistance(Trip $trip)
-    {
-        $usersWithinDistance = $this->getUsersWithinDistance($trip);
         // Log users within distance
-        Log::info('Users within distance for trip ' . $trip->id . ': ' . $usersWithinDistance->toJson());
-    }
-
-    private function sendTripNotifications(Trip $trip)
-    {
         $usersWithinDistance = $this->getUsersWithinDistance($trip);
+        Log::info('Users within distance for trip ' . $trip->id . ': ' . $usersWithinDistance->toJson());
+
 
         foreach ($usersWithinDistance as $user) {
             try {
-                $inviteLink = 'http://127.0.0.1:8000/trip_invite?tripId=' . $trip->id;
+
+                $newTrip = clone $trip;
+
+
+                $newTrip->guest_id = $user->id;
+
+                // Save the new trip for the user
+                $newTrip->save();
+
+                // Construct invitation link with the new trip ID
+                $inviteLink = 'https://go-project-ashy.vercel.app/account/trip_invite?tripId=' . $newTrip->id;
+
                 if (isset($user->email) && is_string($user->email)) {
                     // Fetch property details for the trip
                     $property = Property::findOrFail($trip->property_id);
                     $name = Auth::user()->last_name;
-                    Mail::to($user->email)->send(new TripMail($trip, $inviteLink, $property->registration_no, $property->type, $name));
-                    Log::info("Invitation sent to {$user->email} for trip {$trip->id}");
+
+                    // Send trip notification
+                    Mail::to($user->email)->send(new TripMail($newTrip, $inviteLink, $property->registration_no, $property->type, $name));
+                    Log::info("Invitation sent to {$user->email} for trip {$newTrip->id}");
                 }
             } catch (\Exception $e) {
-                Log::error("Failed to send invitation to {$user->email} for trip {$trip->id}: {$e->getMessage()}");
+                Log::error("Failed to send invitation to {$user->email} for trip: {$e->getMessage()}");
             }
         }
     }
-
-
 
     private function getUsersWithinDistance(Trip $trip): \Illuminate\Support\Collection
     {
@@ -67,6 +63,7 @@ class TripService
 
         $variableDistance = $trip->variable_distance;
 
+        // Query to get users within the specified distance range
         $usersWithinDistance = User::selectRaw(
             'users.*, ( 3959 * acos( cos( radians(?) ) * cos( radians( latitude ) ) * cos( radians( longitude ) - radians(?) ) + sin( radians(?) ) * sin( radians( latitude ) ) ) ) AS distance',
             [$user->latitude, $user->longitude, $user->latitude]
@@ -99,5 +96,28 @@ class TripService
     protected function notifyTripCreator(Trip $trip)
     {
         Mail::to($trip->sender->email)->send(new TripNotification($trip));
+    }
+
+    protected function notifyTripCreatorForDecline(Trip $trip)
+    {
+        Mail::to($trip->sender->email)->send(new TripDecline($trip));
+    }
+    public function declineTrip(Trip $trip): bool
+    {
+        $userId = Auth::id();
+
+        if ($userId) {
+            $trip->update([
+                'trip_status' => 'decline',
+                'guest_id' => $userId,
+            ]);
+
+            $this->notifyTripCreatorForDecline($trip);
+
+            return true;
+        } else {
+            return false;
+        }
+
     }
 }
