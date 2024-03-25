@@ -7,12 +7,23 @@ use Illuminate\Database\Eloquent\Model;
 
 /**
  * @method static findOrFail($tripId)
+ * @method static where(string $string, mixed $tripId)
  * @property mixed $sender_id
  * @property mixed $variable_distance
+ * @property mixed $unique_code
  */
 class Trip extends Model
 {
     use HasFactory;
+
+    /**
+     * @var mixed
+     */
+    public $name;
+    /**
+     * @var mixed
+     */
+    public $description;
     protected $fillable = [
         'type',
         'pickUp',

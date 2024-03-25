@@ -6,6 +6,9 @@ use App\Http\Controllers\Controller;
 use App\Http\Controllers\API\BaseController as BaseController;
 use App\Mail\AdminMail;
 use App\Mail\UserReplyMail;
+use App\Models\AdminReply;
+use App\Models\Feedback;
+use App\Models\User;
 use Illuminate\Http\Request;
 use App\Services\FeedbackService;
 use Illuminate\Support\Facades\Auth;
@@ -77,9 +80,24 @@ class FeedbackController extends BaseController
     {
         $validated = $request->validate(['description' => 'required|string']);
         $adminReply = $this->feedbackService->replyToFeedback($id, $validated['description']);
-        $adm = "projectgo295@gmail.com";
-        Mail::to($adm)->send(new AdminMail($adminReply));
+        $userFeedbackId = Feedback::where('id', $id)->first();
+        $userFeedbackUserId = $userFeedbackId->user_id;
+        $userFeedbackEmail = User::where('id', $userFeedbackUserId)->first()->email;
+        Mail::to($userFeedbackEmail)->send(new AdminMail($adminReply));
         return response()->json(['message' => 'Admin reply submitted successfully', 'data' => $adminReply], 201);
+    }
+
+    public function AdminReplies($id): \Illuminate\Http\JsonResponse
+    {
+        $feedback = AdminReply::where('feedback_id', $id)->first();
+        return response()->json(['message' => 'Success', 'data' => $feedback], 200);
+    }
+
+    public function AdminReplyPerUser(): \Illuminate\Http\JsonResponse
+    {
+        $userId = Auth::user()->getAuthIdentifier();
+        $feedback = AdminReply::where('user_id', $userId)->get();
+        return response()->json(['message' => 'Success', 'data' => $feedback], 200);
     }
 
     public function userReply(Request $request, $feedback_id, $id): \Illuminate\Http\JsonResponse
