@@ -90,7 +90,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/get-ref-settings/perAdmin', [ReferralSettingController::class, 'getAllReferralSettings']);
 
     //Payment
-    Route::post('/make-payment/{tripid}', [PaymentController::class, 'inviteUserToTripPayment']);
+    Route::post('/make-payment/{tripId}', [PaymentController::class, 'inviteUserToTripPayment']);
+    Route::get('/get-payment', [PaymentController::class, 'getPayment']);
 });
 
 
