@@ -18,7 +18,6 @@ class CreatePaymentsTable extends Migration
             $table->foreignId('passenger_id');
             $table->foreignId('user_id');
             $table->foreignId('trip_id');
-            $table->decimal('amount')->nullable();
             $table->foreignId('split_method_id');
             $table->string('unique_code')->nullable();
             $table->decimal('percentage')->nullable();
@@ -27,6 +26,9 @@ class CreatePaymentsTable extends Migration
             $table->enum('status', array('successful', 'failed', 'pending'))->nullable();
             $table->decimal('commission')->nullable();
             $table->decimal('residualAmount')->nullable();
+            $table->string('reason')->nullable();
+            $table->string('description')->nullable();
+            $table->string('amount')->nullable();
             $table->timestamps();
         });
     }
