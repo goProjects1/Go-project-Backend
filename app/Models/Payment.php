@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 /**
  * @method static create(array $array)
+ * @method static where(string $string, $paginate)
  */
 class Payment extends Model
 {
@@ -21,6 +22,8 @@ class Payment extends Model
         'unique_code',
         'email',
         'split_method_id',
-        'amount'
+        'amount',
+        'reason',
+        'description'
     ];
 }
