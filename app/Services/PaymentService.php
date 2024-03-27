@@ -5,12 +5,14 @@ namespace App\Services;
 use App\Models\Payment;
 use App\Models\Trip;
 use App\Models\User;
+use http\Env\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Stripe\Checkout\Session;
 use Stripe\Exception\ApiErrorException;
 use Stripe\Stripe;
+use Illuminate\Auth\AuthenticationException;
 
 class PaymentService
 {
@@ -36,6 +38,8 @@ class PaymentService
                     'unique_code' => Str::random(10),
                     'email' => $em,
                     'split_method_id' => $request->split_method_id,
+                    'reason' => $request->reason,
+                    'description' => $request->description,
                     'amount' => $payable,
                 ]);
 
@@ -68,22 +72,21 @@ class PaymentService
         return true;
     }
 
-
     private function calculatePayableAmount($payment, $request, $em, $count, $key, $payable)
     {
         if ($request->split_method_id == 1) {
-            $payable = $payment->fee_amount;
+            $payable = $request->amount;
         } elseif ($request->split_method_id == 2) {
             if ($request->has('percentage')) {
-                $payable = $payment->fee_amount * $request->percentage / 100;
+                $payable = $request->amount * $request->percentage / 100;
             } elseif ($request->has('percentage_per_user')) {
                 $ppu = json_decode($request->percentage_per_user);
-                $payable = $ppu->$em * $payment->fee_amount / 100;
+                $payable = $ppu->$em * $request->amount / 100;
             }
         } elseif ($request->split_method_id == 3) {
-            $payable = round($payment->fee_amount / $count, 3);
+            $payable = round($request->amount / $count, 3);
             if ($key == $count - 1) {
-                $payable = round($payment->fee_amount - ($payable * ($count - 1)), 2);
+                $payable = round($request->amount - ($payable * ($count - 1)), 2);
             }
         }
         return $payable;
@@ -97,4 +100,19 @@ class PaymentService
                 ->subject('Payment Link');
         });
     }
+
+    public function getUserPaymentDetails($request)
+    {
+        // Check if user is authenticated before accessing user ID
+        if (Auth::check()) {
+            $userId = Auth::user()->getAuthIdentifier();
+            return Payment::where('user_id', $userId)->paginate($request->query('per_page', 10));
+        } else {
+            // Throw an AuthenticationException if user is not authenticated
+            throw new AuthenticationException('User is not authenticated.');
+        }
+    }
+
+
+
 }

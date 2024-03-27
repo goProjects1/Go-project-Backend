@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Trip;
 use App\Services\PaymentService;
 use Illuminate\Http\Request;
+use Illuminate\Auth\AuthenticationException;
+
 
 class PaymentController extends Controller
 {
@@ -16,11 +18,11 @@ class PaymentController extends Controller
         $this->paymentService = $paymentService;
     }
 
-    public function inviteUserToTripPayment(Request $request, $tripid)
+    public function inviteUserToTripPayment(Request $request, $tripId)
     {
 
         try {
-            $payment = Trip::findOrFail($tripid);
+            $payment = Trip::findOrFail($tripId);
         } catch (\Exception $e) {
             return response()->json(['error' => 'Trip not found'], 404);
         }
@@ -36,5 +38,16 @@ class PaymentController extends Controller
             }
         }
     }
+
+    public function getPayment(Request $request): \Illuminate\Http\JsonResponse
+    {
+        try {
+            $paymentInfo = $this->paymentService->getUserPaymentDetails($request);
+            return response()->json(['message' => 'Success', 'data' => $paymentInfo], 200);
+        } catch (AuthenticationException $e) {
+            return response()->json(['message' => 'Authentication Error: ' . $e->getMessage()], 401);
+        }
+    }
+
 
 }
