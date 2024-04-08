@@ -133,7 +133,6 @@ class TripController extends BaseController
         // Get the authenticated user's ID
         $userId = auth()->id();
 
-        // Call the service method to retrieve all trips per user
         $allTrips = $this->tripService->getAllTripsPerUser($userId);
 
         return $this->sendResponse($allTrips, 'Trips retrieved successfully');
@@ -142,12 +141,13 @@ class TripController extends BaseController
     public function getUsersTripAsPassenger(): \Illuminate\Http\JsonResponse
     {
         $allTrips = $this->tripService->getAllTripsAsPassenger();
+
         return $this->sendResponse($allTrips, 'Trips retrieved successfully');
     }
 
-    public function getTripDetailsById(Request $request, $tripId)
+
+    public function getTripDetailsById($tripId): \Illuminate\Http\JsonResponse
     {
-        // Call the service method to retrieve trip details by trip_id
         $trip = $this->tripService->getTripDetails($tripId);
 
         if (!$trip) {
