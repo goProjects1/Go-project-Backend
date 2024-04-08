@@ -8,11 +8,10 @@ use App\Models\Property;
 use App\Models\Trip;
 use App\Mail\TripMail;
 use App\Models\User;
+use http\Env\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Http\Response;
 
 
 class TripService
@@ -23,32 +22,31 @@ class TripService
         $usersWithinDistance = $this->getUsersWithinDistance($trip);
         Log::info('Users within distance for trip ' . $trip->id . ': ' . $usersWithinDistance->toJson());
 
-
+        $tripCreatorId = $trip->sender_id;
         foreach ($usersWithinDistance as $user) {
-            try {
+            if ($user->id !== $tripCreatorId) {
+                try {
+                    $newTrip = clone $trip;
+                    $newTrip->guest_id = $user->id;
 
-                $newTrip = clone $trip;
+                    // Save the new trip for the user
+                    $newTrip->save();
 
+                    // Construct invitation link with the new trip ID
+                    $inviteLink = 'https://go-project-ashy.vercel.app/account/trip_invite?tripId=' . $newTrip->id;
 
-                $newTrip->guest_id = $user->id;
+                    if (isset($user->email) && is_string($user->email)) {
+                        // Fetch property details for the trip
+                        $property = Property::findOrFail($trip->property_id);
+                        $name = Auth::user()->last_name;
 
-                // Save the new trip for the user
-                $newTrip->save();
-
-                // Construct invitation link with the new trip ID
-                $inviteLink = 'https://go-project-ashy.vercel.app/account/trip_invite?tripId=' . $newTrip->id;
-
-                if (isset($user->email) && is_string($user->email)) {
-                    // Fetch property details for the trip
-                    $property = Property::findOrFail($trip->property_id);
-                    $name = Auth::user()->last_name;
-
-                    // Send trip notification
-                    Mail::to($user->email)->send(new TripMail($newTrip, $inviteLink, $property->registration_no, $property->type, $name));
-                    Log::info("Invitation sent to {$user->email} for trip {$newTrip->id}");
+                        // Send trip notification
+                        Mail::to($user->email)->send(new TripMail($newTrip, $inviteLink, $property->registration_no, $property->type, $name));
+                        Log::info("Invitation sent to {$user->email} for trip {$newTrip->id}");
+                    }
+                } catch (\Exception $e) {
+                    Log::error("Failed to send invitation to {$user->email} for trip: {$e->getMessage()}");
                 }
-            } catch (\Exception $e) {
-                Log::error("Failed to send invitation to {$user->email} for trip: {$e->getMessage()}");
             }
         }
     }
@@ -119,5 +117,29 @@ class TripService
             return false;
         }
 
+    }
+
+
+    public function getAllTripsPerUser(Request $request)
+    {
+        if (!Auth::check()) {
+            return response()->json(['error' => 'Unauthenticated.'], 401);
+        }
+        $perPage = $request->input('per_page', 10);
+        $user_id = Auth::user()->getAuthIdentifier();
+        return Trip::where('sender_id', $user_id)->paginate($perPage);
+    }
+    public function getAllTripsAsPassenger($tripId)
+    {
+        // Retrieve the trip with the given trip_id along with sender and guest users, including their names
+        return Trip::with(['sender:id,name', 'guest:id,name'])
+            ->find($tripId);
+    }
+
+    public function getTripDetails($tripId)
+    {
+        // Retrieve the trip with the given trip_id along with sender and guest users, including their names
+        return Trip::with(['sender:id,name', 'guest:id,name'])
+            ->find($tripId);
     }
 }
