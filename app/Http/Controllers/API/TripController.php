@@ -47,7 +47,7 @@ class TripController extends BaseController
 
         // Check if user is currently on a trip
         $user_id = Auth::user()->getAuthIdentifier();
-        $isOnTrip = Trip::where('user_id', $user_id)
+        $isOnTrip = Trip::where('sender_id', $user_id)
             ->where('trip_status', 'ongoing')
             ->exists();
 
@@ -128,9 +128,14 @@ class TripController extends BaseController
         }
     }
 
-    public function getUsersTrip(): \Illuminate\Http\JsonResponse
+    public function getUsersTrip(Request $request)
     {
-        $allTrips = $this->tripService->getAllTripsPerUser();
+        // Get the authenticated user's ID
+        $userId = auth()->id();
+
+        // Call the service method to retrieve all trips per user
+        $allTrips = $this->tripService->getAllTripsPerUser($userId);
+
         return $this->sendResponse($allTrips, 'Trips retrieved successfully');
     }
 
