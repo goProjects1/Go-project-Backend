@@ -120,25 +120,24 @@ class TripService
     }
 
 
-    public function getAllTripsPerUser(Request $request, $userId)
+    public function getAllTripsPerUser($userId)
     {
         if (!Auth::check()) {
             return response()->json(['error' => 'Unauthenticated.'], 401);
         }
-        $perPage = $request->input('per_page', 10);
+
+        $perPage = 10;
         $user_id = Auth::user()->getAuthIdentifier();
+
         return Trip::where('sender_id', $user_id)->paginate($perPage);
     }
-    public function getAllTripsAsPassenger($tripId)
+    public function getAllTripsAsPassenger()
     {
-        // Retrieve the trip with the given trip_id along with sender and guest users, including their names
-        return Trip::with(['sender:id,name', 'guest:id,name'])
-            ->find($tripId);
+        $perPage = 10;
+        return Trip::where('guest_id', auth()->id())->paginate($perPage);
     }
-
     public function getTripDetails($tripId)
     {
-        // Retrieve the trip with the given trip_id along with sender and guest users, including their names
         return Trip::with(['sender:id,name', 'guest:id,name'])
             ->find($tripId);
     }
