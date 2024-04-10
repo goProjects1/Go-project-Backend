@@ -131,6 +131,8 @@ class TripService
 
         return Trip::where('sender_id', $user_id)->paginate($perPage);
     }
+
+    
     public function getAllTripsAsPassenger()
     {
         $perPage = 10;
@@ -138,7 +140,7 @@ class TripService
     }
     public function getTripDetails($tripId)
     {
-        return Trip::with(['sender:id,name', 'guest:id,name'])
+        return Trip::with(['sender:id,email', 'guest:id,email'])
             ->find($tripId);
     }
 }
