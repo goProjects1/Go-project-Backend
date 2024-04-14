@@ -5,6 +5,7 @@ use App\Http\Controllers\API\FeedbackController;
 use App\Http\Controllers\API\PaymentController;
 use App\Http\Controllers\API\ReferralController;
 use App\Http\Controllers\API\ReferralSettingController;
+use App\Http\Controllers\API\ReportController;
 use App\Http\Controllers\API\TripController;
 use App\Http\Controllers\API\TripScheduleController;
 use Illuminate\Support\Facades\Route;
@@ -95,6 +96,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
     //Payment
     Route::post('/make-payment/{tripId}', [PaymentController::class, 'inviteUserToTripPayment']);
     Route::get('/get-payment', [PaymentController::class, 'getPayment']);
+
+    // Reporting
+    Route::get('/get-report', [ReportController::class, 'getTripReport']);
 });
 
 
