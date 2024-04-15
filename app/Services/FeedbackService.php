@@ -42,8 +42,9 @@ class FeedbackService
 
         return AdminReply::create([
             'feedback_id' => $feedback->id,
-            'admin_id' => Auth::User()->getAuthIdentifier(),
+            'admin_id' => Auth::User()->id,
             'description' => $comment,
+            'user_id' => $feedback->user_id,
         ]);
     }
 
