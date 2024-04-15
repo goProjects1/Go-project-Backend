@@ -132,7 +132,7 @@ class TripService
         return Trip::where('sender_id', $user_id)->paginate($perPage);
     }
 
-    
+
     public function getAllTripsAsPassenger()
     {
         $perPage = 10;
@@ -140,7 +140,24 @@ class TripService
     }
     public function getTripDetails($tripId)
     {
-        return Trip::with(['sender:id,email', 'guest:id,email'])
-            ->find($tripId);
+        // Fetch trip details with sender's email
+        $trip = Trip::with(['sender:id,email'])->find($tripId);
+
+        if ($trip) {
+            // Fetch all guest details (IDs and emails) from the User table for the given tripId
+            $guests = User::whereIn('id', function ($query) use ($tripId) {
+                $query->select('guest_id')->from('trips')->where('id', $tripId);
+            })->get(['id', 'email']);
+
+            // Append guest details to the trip object
+            $trip->guest_details = $guests;
+
+            return $trip;
+        }
+
+        // If trip with given tripId is not found, return null or handle accordingly
+        return null;
     }
+
+
 }
