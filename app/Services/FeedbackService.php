@@ -5,13 +5,17 @@ namespace App\Services;
 use App\Models\Feedback;
 use App\Models\AdminReply;
 use App\Models\UserReply;
+use http\Env\Request;
+use Illuminate\Support\Facades\Auth;
+
 
 class FeedbackService
 {
 
-    public function getAllFeedbacks()
+    public function getAllFeedbacks(Request $request)
     {
-        return Feedback::all();
+        return Feedback::where('user_id', Auth::user()->getAuthIdentifier()->id)
+            ->paginate($request->query('per_page', 10));
     }
     public function storeFeedback(array $data)
     {
@@ -41,7 +45,9 @@ class FeedbackService
 
         return AdminReply::create([
             'feedback_id' => $feedback->id,
+            'admin_id' => Auth::User()->id,
             'description' => $comment,
+            'user_id' => $feedback->user_id,
         ]);
     }
 

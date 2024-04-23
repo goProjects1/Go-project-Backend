@@ -44,6 +44,15 @@ class TripController extends BaseController
             'description' => 'required',
             'property_id' => 'required'
         ]);
+        // Check if user is currently on a trip
+        $user_id = Auth::user()->getAuthIdentifier();
+        $isOnTrip = Trip::where('sender_id', $user_id)
+            ->where('trip_status', 'ongoing')
+            ->exists();
+
+        if ($isOnTrip) {
+            return response()->json(['message' => 'You cannot initiate another trip while you are currently on one.'], 400);
+        }
 
         // Fetch property details based on the provided property_id
         $property = Property::where('id', $request->property_id)
@@ -53,6 +62,7 @@ class TripController extends BaseController
             return response()->json(['error' => 'Property does not belong to this user'], 403);
         }
 
+        // Create new trip
         $trip = new Trip($request->all());
         $trip->sender_id = Auth::user()->getAuthIdentifier();
         $this->tripService->notifyUsersAndSaveTrip($trip);
@@ -97,7 +107,7 @@ class TripController extends BaseController
 
             if ($invitation) {
                 // Update the status column to decline
-                $invitation->status = 'decline';
+                $invitation->trip_status = 'decline';
                 $invitation->save();
 
                 // Create a Decline record if needed
@@ -116,5 +126,33 @@ class TripController extends BaseController
         }
     }
 
+    public function getUsersTrip(Request $request): \Illuminate\Http\JsonResponse
+    {
+        // Get the authenticated user's ID
+        $userId = auth()->id();
+
+        $allTrips = $this->tripService->getAllTripsPerUser($userId);
+
+        return $this->sendResponse($allTrips, 'Trips retrieved successfully');
+    }
+
+    public function getUsersTripAsPassenger(): \Illuminate\Http\JsonResponse
+    {
+        $allTrips = $this->tripService->getAllTripsAsPassenger();
+
+        return $this->sendResponse($allTrips, 'Trips retrieved successfully');
+    }
+
+
+    public function getTripDetailsById($tripId): \Illuminate\Http\JsonResponse
+    {
+        $trip = $this->tripService->getTripDetails($tripId);
+
+        if (!$trip) {
+            return response()->json(['error' => 'Trip not found.'], 404);
+        }
+
+        return response()->json(['trip' => $trip], 200);
+    }
 
 }

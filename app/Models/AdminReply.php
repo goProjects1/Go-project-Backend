@@ -17,7 +17,8 @@ class AdminReply extends Model
     protected $fillable = [
         'description',
         'feedback_id',
-        'admin_id'
+        'admin_id',
+        'user_id'
     ];
 
 }

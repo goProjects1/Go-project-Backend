@@ -58,9 +58,9 @@ class ReferralService
         return null;
     }
 
-    public function isReferralOngoing($referralSetting, $refSetting): bool
+    public function isReferralOngoing($referralSetting): bool
     {
-        return $refSetting->duration === 'evergreen' || $this->isFixedReferralOngoing($referralSetting);
+        return $referralSetting->duration === 'evergreen' || $this->isFixedReferralOngoing($referralSetting);
     }
 
     private function isFixedReferralOngoing($referralSetting): bool
