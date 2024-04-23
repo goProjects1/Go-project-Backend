@@ -128,7 +128,7 @@ class TripController extends BaseController
         }
     }
 
-    public function getUsersTrip(Request $request)
+    public function getUsersTrip(Request $request): \Illuminate\Http\JsonResponse
     {
         // Get the authenticated user's ID
         $userId = auth()->id();
