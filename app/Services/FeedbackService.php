@@ -8,6 +8,7 @@ use App\Models\UserReply;
 use http\Client\Request;
 use Illuminate\Support\Facades\Auth;
 
+
 class FeedbackService
 {
 
@@ -60,5 +61,4 @@ class FeedbackService
             'description' => $comment,
         ]);
     }
-
 }
