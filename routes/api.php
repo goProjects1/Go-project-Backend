@@ -77,7 +77,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::delete('/delete-scheduleTrip/{id}', [TripScheduleController::class, 'deleteTrip']);
     Route::post('/feedback', [FeedbackController::class, 'store']);
     Route::post('/feedback/{id}/reply', [FeedbackController::class, 'reply']);
-    Route::get('/feedbacks', [FeedbackController::class, 'index']);
+    Route::get('/feedbacks/perUser', [FeedbackController::class, 'index']);
     Route::get('/adminReplyPerUser', [FeedbackController::class, 'AdminReplyPerUser']);
     Route::get('/adminReplyPerUserById/{id}', [FeedbackController::class, 'AdminReplies']);
     Route::get('/feedbacks/{id}', [FeedbackController::class, 'show']);

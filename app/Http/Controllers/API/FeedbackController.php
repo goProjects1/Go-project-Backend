@@ -25,9 +25,9 @@ class FeedbackController extends BaseController
         $this->feedbackService = $feedbackService;
     }
 
-    public function index(): \Illuminate\Http\JsonResponse
+    public function index(Request $request): \Illuminate\Http\JsonResponse
     {
-        $feedbacks = $this->feedbackService->getAllFeedbacks();
+        $feedbacks = $this->feedbackService->getAllFeedbacks($request);
         return response()->json(['message' => 'Success', 'data' => $feedbacks], 200);
     }
 
