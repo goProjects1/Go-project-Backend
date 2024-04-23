@@ -101,14 +101,7 @@ class FeedbackController extends BaseController
         return response()->json(['message' => 'Success', 'data' => $feedback], 200);
     }
 
-    public function reply(Request $request, $id): \Illuminate\Http\JsonResponse
-    {
-        $validated = $request->validate(['description' => 'required|string']);
-        $adminReply = $this->feedbackService->replyToFeedback($id, $validated['description']);
-        $adm = "projectgo295@gmail.com";
-        Mail::to($adm)->send(new AdminMail($adminReply));
-        return response()->json(['message' => 'Admin reply submitted successfully', 'data' => $adminReply], 201);
-    }
+
 
 
     public function userReply(Request $request, $feedback_id, $id): \Illuminate\Http\JsonResponse
