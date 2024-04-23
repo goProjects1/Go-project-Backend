@@ -9,11 +9,12 @@ use App\Mail\UserReplyMail;
 use App\Models\AdminReply;
 use App\Models\Feedback;
 use App\Models\User;
-use Illuminate\Http\Request;
 use App\Services\FeedbackService;
+use http\Client\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\FeedbackMail;
+
 
 class FeedbackController extends BaseController
 {
@@ -99,6 +100,16 @@ class FeedbackController extends BaseController
         $feedback = AdminReply::where('user_id', $userId)->get();
         return response()->json(['message' => 'Success', 'data' => $feedback], 200);
     }
+
+    public function reply(Request $request, $id): \Illuminate\Http\JsonResponse
+    {
+        $validated = $request->validate(['description' => 'required|string']);
+        $adminReply = $this->feedbackService->replyToFeedback($id, $validated['description']);
+        $adm = "projectgo295@gmail.com";
+        Mail::to($adm)->send(new AdminMail($adminReply));
+        return response()->json(['message' => 'Admin reply submitted successfully', 'data' => $adminReply], 201);
+    }
+
 
     public function userReply(Request $request, $feedback_id, $id): \Illuminate\Http\JsonResponse
     {

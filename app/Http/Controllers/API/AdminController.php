@@ -10,6 +10,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
+
 class AdminController extends Controller
 {
     //
@@ -31,12 +32,13 @@ class AdminController extends Controller
                 'usertype' => 'Admin',
                 'password' => Hash::make($request->password)
             ]);
-
             $user->save();
             return response()->json(['message' => 'Admin user has been registered', 'data' => $user], 200);
-
         }
-
+        } else {
+            return response()->json(['error' => 'Unauthorized'], 401);
+        }
+    }
 
 
     public function getProfile(): \Illuminate\Http\JsonResponse
@@ -71,12 +73,14 @@ class AdminController extends Controller
     public function getAllCompletedTrips(Request $request): \Illuminate\Http\JsonResponse
     {
         $completedTrips = Trip::where('trip_status', 'completed')->paginate($request->query('per_page', 10));
+
         return response()->json($completedTrips);
     }
 
     public function getAllAcceptedTrips(Request $request): \Illuminate\Http\JsonResponse
     {
         $acceptedTrips = Trip::where('trip_status', 'accepted')->paginate($request->query('per_page', 10));
+
         return response()->json($acceptedTrips);
     }
     public function getPendingTrips(Request $request): \Illuminate\Http\JsonResponse
@@ -88,6 +92,7 @@ class AdminController extends Controller
     public function getAllFailedTrips(Request $request): \Illuminate\Http\JsonResponse
     {
         $failedTrips = Trip::where('trip_status', 'decline')->paginate($request->query('per_page', 10));
+
         return response()->json($failedTrips);
     }
 

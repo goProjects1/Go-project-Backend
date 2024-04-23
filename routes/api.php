@@ -48,6 +48,20 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
 
 });
 
+Route::middleware(['auth:sanctum', 'admin'])->group(function () {
+    Route::get('/admin/register', [AdminController::class, 'adminRegister']);
+    Route::get('/admin/users', [AdminController::class, 'getAllUsers']);
+    Route::get('/admin/users/{email}', [AdminController::class, 'getAllUsersByEmail']);
+    Route::post('/admin/getProfile', [AdminController::class, 'getProfile']);
+    Route::get('/admin/trips', [AdminController::class, 'getAllTrips']);
+    Route::get('/admin/trips/{trip_id}', [AdminController::class, 'getAllTripsPerId']);
+    Route::get('/admin/completed-trips', [AdminController::class, 'getAllCompletedTrips']);
+    Route::get('/admin/pending-trips', [AdminController::class, 'getPendingTrips']);
+    Route::get('/admin/accepted-trips', [AdminController::class, 'getAllAcceptedTrips']);
+    Route::get('/admin/failed-trips', [AdminController::class, 'getAllFailedTrips']);
+    Route::get('/admin/feedbacks', [AdminController::class, 'getAllFeedbacks']);
+});
+
 // Auth guided routes
 Route::middleware(['auth:sanctum'])->group(function () {
 
@@ -99,5 +113,18 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     // Reporting
     Route::get('/get-report', [ReportController::class, 'getTripReport']);
+    Route::post('/admin-reply/{id}/{feedback_id}/user-reply', [FeedbackController::class, 'userReply']);
+    Route::get('/feedbacks', [FeedbackController::class, 'index']);
+    Route::get('/feedbacks/{id}', [FeedbackController::class, 'show']);
+    Route::put('/feedbacks/{id}', [FeedbackController::class, 'update']);
+    Route::delete('/feedbacks/{id}', [FeedbackController::class, 'destroy']);
+
+    // Referrals
+    Route::get('/generate-link', [ReferralController::class, 'generateReferralUrl']);
+    Route::get('/get-refPoint-per-user', [ReferralController::class, 'getAllReferral']);
+
+    Route::post('/set-ref', [ReferralSettingController::class, 'createReferral']);
+    Route::put('/update-ref/{referralId}', [ReferralSettingController::class, 'updateReferral']);
+    Route::get('/get-ref-settings/perAdmin', [ReferralSettingController::class, 'getAllReferralSettings']);
 });
 

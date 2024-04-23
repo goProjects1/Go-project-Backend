@@ -44,7 +44,6 @@ class TripController extends BaseController
             'description' => 'required',
             'property_id' => 'required'
         ]);
-
         // Check if user is currently on a trip
         $user_id = Auth::user()->getAuthIdentifier();
         $isOnTrip = Trip::where('sender_id', $user_id)
@@ -75,7 +74,6 @@ class TripController extends BaseController
             $this->referral->checkSettingEnquiry($modelType);
         }
 
-        // response data
         $responseData = [
             'trip' => $trip,
             'property_name' => $property->type,
