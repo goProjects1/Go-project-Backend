@@ -28,12 +28,12 @@ class AdminMiddleware
 
         return response()->json(['error' => 'Unauthorized. Admin access required.'], 403);
     }
-
+	/*
      * @param Request $request
      * @param Closure(Request): (Response|RedirectResponse) $next
      * @return Response|RedirectResponse
      */
-    public function handle(Request $request, Closure $next)
+    public function handless(Request $request, Closure $next)
     {
         if ($request->user() && $request->user()->isAdmin()) {
             return $next($request);
