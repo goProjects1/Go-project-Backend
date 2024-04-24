@@ -10,7 +10,7 @@ use App\Models\AdminReply;
 use App\Models\Feedback;
 use App\Models\User;
 use App\Services\FeedbackService;
-use http\Client\Request;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\FeedbackMail;
@@ -101,14 +101,7 @@ class FeedbackController extends BaseController
         return response()->json(['message' => 'Success', 'data' => $feedback], 200);
     }
 
-    public function reply(Request $request, $id): \Illuminate\Http\JsonResponse
-    {
-        $validated = $request->validate(['description' => 'required|string']);
-        $adminReply = $this->feedbackService->replyToFeedback($id, $validated['description']);
-        $adm = "projectgo295@gmail.com";
-        Mail::to($adm)->send(new AdminMail($adminReply));
-        return response()->json(['message' => 'Admin reply submitted successfully', 'data' => $adminReply], 201);
-    }
+
 
 
     public function userReply(Request $request, $feedback_id, $id): \Illuminate\Http\JsonResponse
@@ -119,4 +112,18 @@ class FeedbackController extends BaseController
         Mail::to($adm)->send(new userReplyMail($userReply));
         return response()->json(['message' => 'User reply submitted successfully', 'data' => $userReply], 201);
     }
+
+
+	public function markAsCompleted(Request $request, $feedbackId)
+{
+    $request->validate([
+        'status' => 'required|string|in:unresolved,resolved',
+    ]);
+
+    // Call the service to mark feedback as completed
+    $feedback = $this->feedbackService->markFeedbackAsCompleted($feedbackId, $request->input('status'));
+
+    return response()->json(['message' => 'Feedback status updated to completed', 'data' => $feedback], 200);
+}
+
 }

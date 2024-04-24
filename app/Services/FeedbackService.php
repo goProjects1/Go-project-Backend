@@ -5,18 +5,30 @@ namespace App\Services;
 use App\Models\Feedback;
 use App\Models\AdminReply;
 use App\Models\UserReply;
-use http\Client\Request;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 
 class FeedbackService
 {
 
-    public function getAllFeedbacks(Request $request)
-    {
-        return Feedback::where('user_id', Auth::user()->getAuthIdentifier()->id)
-            ->paginate($request->query('per_page', 10));
+
+	public function getAllFeedbacks(Request $request)
+{
+    // Check if the user is authenticated
+    if (Auth::check()) {
+        // Access the authenticated user's id
+        $userId = Auth::id();
+        
+        // Use the user id to retrieve feedbacks
+        return Feedback::where('user_id', $userId)->paginate($request->query('per_page', 10));
+    } else {
+        // Handle the case where the user is not authenticated
+        return response()->json(['error' => 'Unauthorized'], 401);
     }
+}
+
+
     public function storeFeedback(array $data)
     {
         return Feedback::create($data);
