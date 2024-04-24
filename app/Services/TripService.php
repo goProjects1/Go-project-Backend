@@ -53,7 +53,7 @@ class TripService
                     if (isset($user->email) && is_string($user->email)) {
                         // Fetch property details for the trip
                         $property = Property::findOrFail($trip->property_id);
-                        $name = Auth::user()->last_name;
+                        $name = $user->last_name; // Use $user->last_name instead of Auth::user()->last_name
 
                         // Send trip notification
                         Mail::to($user->email)->send(new TripMail($newTrip, $inviteLink, $property->registration_no, $property->type, $name));
@@ -62,22 +62,24 @@ class TripService
                 } catch (\Exception $e) {
                     Log::error("Failed to send invitation to {$user->email} for trip: {$e->getMessage()}");
                 }
-            try {https://go-project-ashy.vercel.app/account/trip_invite?tripId=8&action=decline
-                $inviteLink = 'https://go-project-ashy.vercel.app/account/trip_invite?tripId=' . $trip->id;
-                if (isset($user->email) && is_string($user->email)) {
-                    // Fetch property details for the trip
-                    $property = Property::findOrFail($trip->property_id);
-                    $name = Auth::user()->last_name;
-                    $this->saveTripForUser($trip, $user->id);
-                    // Send trip notification
-                    Mail::to($user->email)->send(new TripMail($trip, $inviteLink, $property->registration_no, $property->type, $name));
-                    Log::info("Invitation sent to {$user->email} for trip {$trip->id}");
+            } else {
+                try {
+                    $inviteLink = 'https://go-project-ashy.vercel.app/account/trip_invite?tripId=' . $trip->id;
+                    if (isset($user->email) && is_string($user->email)) {
+                        // Fetch property details for the trip
+                        $property = Property::findOrFail($trip->property_id);
+                        $name = $user->last_name; // Use $user->last_name instead of Auth::user()->last_name
+                        $this->saveTripForUser($trip, $user->id);
 
-                    // Save the trip for the user
+                        // Send trip notification
+                        Mail::to($user->email)->send(new TripMail($trip, $inviteLink, $property->registration_no, $property->type, $name));
+                        Log::info("Invitation sent to {$user->email} for trip {$trip->id}");
 
+                        // Save the trip for the user
+                    }
+                } catch (\Exception $e) {
+                    Log::error("Failed to send invitation to {$user->email} for trip {$trip->id}: {$e->getMessage()}");
                 }
-            } catch (\Exception $e) {
-                Log::error("Failed to send invitation to {$user->email} for trip {$trip->id}: {$e->getMessage()}");
             }
         }
     }
@@ -176,33 +178,6 @@ class TripService
         $user_id = Auth::user()->getAuthIdentifier();
 
         return Trip::where('sender_id', $user_id)->paginate($perPage);
-
-    }
-    protected function notifyTripCreator(Trip $trip)
-    {
-        Mail::to($trip->sender->email)->send(new TripNotification($trip));
-    }
-
-    protected function notifyTripCreatorForDecline(Trip $trip)
-    {
-        Mail::to($trip->sender->email)->send(new TripDecline($trip));
-    }
-    public function declineTrip(Trip $trip): bool
-    {
-        $userId = Auth::id();
-
-        if ($userId) {
-            $trip->update([
-                'trip_status' => 'decline',
-                'guest_id' => $userId,
-            ]);
-
-            $this->notifyTripCreatorForDecline($trip);
-
-            return true;
-        } else {
-            return false;
-        }
 
     }
 
