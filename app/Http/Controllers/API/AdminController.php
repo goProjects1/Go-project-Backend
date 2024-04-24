@@ -32,7 +32,7 @@ class AdminController extends Controller
             'password' => Hash::make($request->password)
         ]);
         $user->save();
-        return response()->json(['message' => 'Admin user has been registered', 'data' => $user], 200);
+        return response()->json(['message' => 'Admin user has been registered. Thank you', 'data' => $user], 200);
     }
 
 
