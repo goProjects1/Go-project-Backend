@@ -16,28 +16,23 @@ class AdminController extends Controller
     //
     public function adminRegister(Request $request): \Illuminate\Http\JsonResponse
     {
+        // Validate the request for admin registration
+        $this->validate($request, [
+            'phone_number' => 'string|unique:users|required',
+            'email' => 'required|email|unique:users',
+            'password' => 'required|confirmed|min:8|regex:/^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{6,}$/',
+            'password_confirmation' => 'required|same:password',
+        ]);
 
-            // Validate the request for admin registration
-            $this->validate($request, [
-                'phone_number' => 'string|unique:users|required',
-                'email' => 'required|email|unique:users',
-                'password' => 'required|confirmed|min:8|regex:/^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{6,}$/',
-                'password_confirmation' => 'required|same:password',
-            ]);
-
-            // Create an admin user
-            $user = new User([
-                'phone_number' => $request->phone_number,
-                'email' => $request->email,
-                'usertype' => 'Admin',
-                'password' => Hash::make($request->password)
-            ]);
-            $user->save();
-            return response()->json(['message' => 'Admin user has been registered', 'data' => $user], 200);
-        }
-        } else {
-            return response()->json(['error' => 'Unauthorized'], 401);
-        }
+        // Create an admin user
+        $user = new User([
+            'phone_number' => $request->phone_number,
+            'email' => $request->email,
+            'usertype' => 'Admin',
+            'password' => Hash::make($request->password)
+        ]);
+        $user->save();
+        return response()->json(['message' => 'Admin user has been registered. Thank you', 'data' => $user], 200);
     }
 
 
