@@ -112,4 +112,18 @@ class FeedbackController extends BaseController
         Mail::to($adm)->send(new userReplyMail($userReply));
         return response()->json(['message' => 'User reply submitted successfully', 'data' => $userReply], 201);
     }
+
+
+	public function markAsCompleted(Request $request, $feedbackId)
+{
+    $request->validate([
+        'status' => 'required|string|in:unresolved,resolved',
+    ]);
+
+    // Call the service to mark feedback as completed
+    $feedback = $this->feedbackService->markFeedbackAsCompleted($feedbackId, $request->input('status'));
+
+    return response()->json(['message' => 'Feedback status updated to completed', 'data' => $feedback], 200);
+}
+
 }
