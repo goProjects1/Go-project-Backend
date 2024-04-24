@@ -128,3 +128,4 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/get-ref-settings/perAdmin', [ReferralSettingController::class, 'getAllReferralSettings']);
 });
 
+
