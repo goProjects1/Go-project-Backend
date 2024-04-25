@@ -111,7 +111,7 @@ class PropertyController extends BaseController
         return $this->sendResponse(new PropertyResource($property), 'Property fetched.');
     }
 
-    public function update(Request $request, int $propertyId)
+    public function update(Request $request, int $propertyId): JsonResponse
     {
         try {
             // Find property by ID
@@ -137,11 +137,24 @@ class PropertyController extends BaseController
      * @param Property $property
      * @return JsonResponse
      */
-    public function destroy(Property $property): JsonResponse
+    public function destroy(Request $request, int $propertyId): JsonResponse
     {
-        // Delete the property
+        $property = Property::find($propertyId);
+
+        if (!$property) {
+            return $this->sendError('Property not found.');
+        }
+
         $property->delete();
 
         return $this->sendResponse([], 'Property deleted.');
     }
+
+    public function deletedProperties(Request $request): JsonResponse
+    {
+        $deletedProperties = Property::onlyTrashed()->paginate($request->get('perPage', 10));
+
+        return $this->sendResponse($deletedProperties, 'Deleted properties retrieved successfully.');
+    }
+
 }

@@ -120,12 +120,16 @@ class StudentController extends BaseController
      * @param Student $school
      * @return JsonResponse
      */
-    public function destroy(Student $school): JsonResponse
+    public function destroy(Request $request, int $studentId): JsonResponse
     {
-        // Delete the school
-        $school->delete();
+        $student= Student::find($studentId);
 
-        // Return a success response
-        return $this->sendResponse([], 'School deleted.');
+        if (!$studentId) {
+            return $this->sendError('Student not found.');
+        }
+
+        $student->delete();
+
+        return $this->sendResponse([], 'Student deleted.');
     }
 }
