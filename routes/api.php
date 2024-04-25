@@ -71,11 +71,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::resource('property', PropertyController::class);
     Route::get('/getUserProperty',[PropertyController::class, 'getUserProperty']);
     Route::delete('property/{propertyId}', [PropertyController::class, 'destroy']);
-    Route::get('deleted-properties', [PropertyController::class, 'deletedProperties']);
-    Route::get('deleted-jobs', [JobController::class, 'deletedJobs']);
+    Route::get('/deleted-properties', [PropertyController::class, 'deletedProperties']);
+    Route::get('/deleted-jobs', [JobController::class, 'deletedJobs']);
     Route::resource('student', StudentController::class);
     Route::get('/getUserSchool',[StudentController::class, 'getUserSchool']);
-    Route::delete('/delete-school',[StudentController::class, 'destroy']);
+    Route::delete('/delete-student/{studentId}',[StudentController::class, 'destroy']);
     Route::resource('job', JobController::class);
     Route::delete('job/{jobId}', [JobController::class, 'destroyJob']);
     Route::get('deleted-jobs', [JobController::class, 'deletedJobs']);
