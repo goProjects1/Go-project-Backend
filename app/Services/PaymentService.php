@@ -57,8 +57,8 @@ class PaymentService
                         'quantity' => 1,
                     ]],
                     'mode' => 'payment',
-                    'success_url' => 'https://example.com/success',
-                    'cancel_url' => 'https://example.com/cancel',
+                    'success_url' => 'https://go-project-ashy.vercel.app/account/payment-status?result=successful',
+                    'cancel_url' => 'https://go-project-ashy.vercel.app/account/payment-status?result=declined',
                 ]);
 
                 // Send the Payment Link to the user via email
