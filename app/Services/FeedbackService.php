@@ -73,4 +73,21 @@ class FeedbackService
             'description' => $comment,
         ]);
     }
+
+
+  public function markFeedbackAsCompleted($feedbackId, $status)
+	{
+    // Retrieve the feedback by ID
+    $feedback = Feedback::findOrFail($feedbackId);
+
+    // Update the status to the provided value
+    $feedback->status = $status;
+    $feedback->save();
+
+    return $feedback;
+	}
+
+
+
+
 }
