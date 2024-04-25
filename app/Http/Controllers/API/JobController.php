@@ -121,12 +121,23 @@ class JobController extends BaseController
      * @param Job $job
      * @return JsonResponse
      */
-    public function destroy(Job $job): JsonResponse
+    public function destroyJob(Request $request, int $jobId): JsonResponse
     {
-        // Delete the job
+        $job= Job::find($jobId);
+
+        if (!$jobId) {
+            return $this->sendError('Job not found.');
+        }
+
         $job->delete();
 
-        // Return a success response
         return $this->sendResponse([], 'Job deleted.');
+    }
+
+    public function deletedJobs(Request $request): JsonResponse
+    {
+        $deletedJobs = Job::onlyTrashed()->paginate($request->get('perPage', 10));
+
+        return $this->sendResponse($deletedJobs, 'Deleted Jobs retrieved successfully.');
     }
 }

@@ -33,20 +33,20 @@ Route::post('/forgot-password', [ForgetpasswordController::class, 'forgot']);
 Route::post('/reset', [ForgetpasswordController::class, 'reset']);
 Route::post('/admin/register', [AdminController::class, 'adminRegister']);
 
-Route::middleware(['auth:sanctum', 'admin'])->group(function () {
+//Route::middleware(['auth:sanctum', 'admin'])->group(function () {
 
-    Route::get('/admin/users', [AdminController::class, 'getAllUsers']);
-    Route::get('/admin/users/{email}', [AdminController::class, 'getAllUsersByEmail']);
-    Route::get('/admin/getProfile', [AdminController::class, 'getProfile']);
-    Route::get('/admin/trips', [AdminController::class, 'getAllTrips']);
-    Route::get('/admin/trips/{trip_id}', [AdminController::class, 'getAllTripsPerId']);
-    Route::get('/admin/completed-trips', [AdminController::class, 'getAllCompletedTrips']);
-    Route::get('/admin/pending-trips', [AdminController::class, 'getPendingTrips']);
-    Route::get('/admin/accepted-trips', [AdminController::class, 'getAllAcceptedTrips']);
-    Route::get('/admin/failed-trips', [AdminController::class, 'getAllFailedTrips']);
-    Route::get('/admin/feedbacks', [AdminController::class, 'getAllFeedbacks']);
-
-});
+//    Route::get('/admin/users', [AdminController::class, 'getAllUsers']);
+//    Route::get('/admin/users/{email}', [AdminController::class, 'getAllUsersByEmail']);
+//    Route::get('/admin/getProfile', [AdminController::class, 'getProfile']);
+//    Route::get('/admin/trips', [AdminController::class, 'getAllTrips']);
+//    Route::get('/admin/trips/{trip_id}', [AdminController::class, 'getAllTripsPerId']);
+//    Route::get('/admin/completed-trips', [AdminController::class, 'getAllCompletedTrips']);
+//    Route::get('/admin/pending-trips', [AdminController::class, 'getPendingTrips']);
+//    Route::get('/admin/accepted-trips', [AdminController::class, 'getAllAcceptedTrips']);
+//    Route::get('/admin/failed-trips', [AdminController::class, 'getAllFailedTrips']);
+//    Route::get('/admin/feedbacks', [AdminController::class, 'getAllFeedbacks']);
+//
+//});
 
 Route::middleware(['auth:sanctum', 'admin'])->group(function () {
     Route::get('/admin/register', [AdminController::class, 'adminRegister']);
@@ -69,9 +69,15 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::put('/handleFileUpload/{userId}', [AuthController::class, 'handleFileUpload']);
     Route::resource('property', PropertyController::class);
     Route::get('/getUserProperty',[PropertyController::class, 'getUserProperty']);
+    Route::delete('property/{propertyId}', [PropertyController::class, 'destroy']);
+    Route::get('deleted-properties', [PropertyController::class, 'deletedProperties']);
+    Route::get('deleted-jobs', [JobController::class, 'deletedJobs']);
     Route::resource('student', StudentController::class);
     Route::get('/getUserSchool',[StudentController::class, 'getUserSchool']);
+    Route::delete('/delete-school',[StudentController::class, 'destroy']);
     Route::resource('job', JobController::class);
+    Route::delete('job/{jobId}', [JobController::class, 'destroyJob']);
+    Route::get('deleted-jobs', [JobController::class, 'deletedJobs']);
     Route::get('/getUserJob',[JobController::class, 'getUserJob']);
     Route::get('/ops', [AuthController::class, 'geocodeAddress']);
     Route::get('/logout', [AuthController::class, 'logout']);
