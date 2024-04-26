@@ -147,6 +147,7 @@ class AuthController extends BaseController
                         // Validate the request data
                         $validatedData = $request->validate([
                             'first_name' => 'required|string',
+			    'last_name' => 'required|string',
                             'country' => 'required|string',
                             'postcode' => 'required|string',
                             'street' => 'required|string',
@@ -167,6 +168,7 @@ class AuthController extends BaseController
                         // Update additional user data
                         $user->update([
                             'first_name' => $validatedData['first_name'],
+			    'last_name' => $validatedData['last_name'],
                             'country' => $validatedData['country'],
                             'postcode' => $validatedData['postcode'],
                             'street' => $validatedData['street'],
