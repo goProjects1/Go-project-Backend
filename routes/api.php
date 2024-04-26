@@ -60,6 +60,7 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
     Route::get('/admin/accepted-trips', [AdminController::class, 'getAllAcceptedTrips']);
     Route::get('/admin/failed-trips', [AdminController::class, 'getAllFailedTrips']);
     Route::get('/admin/feedbacks', [AdminController::class, 'getAllFeedbacks']);
+    Route::put('/feedbacks/{id}/complete', [FeedbackController::class, 'markAsCompleted']);
 });
 
 // Auth guided routes
