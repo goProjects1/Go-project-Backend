@@ -121,7 +121,7 @@ class JobController extends BaseController
      * @param Job $job
      * @return JsonResponse
      */
-    public function destroyJob(Request $request, int $jobId): JsonResponse
+    public function destroy(Request $request, int $jobId): JsonResponse
     {
         $job= Job::find($jobId);
 

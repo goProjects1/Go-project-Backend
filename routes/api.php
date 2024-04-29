@@ -76,7 +76,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/getUserSchool',[StudentController::class, 'getUserSchool']);
     Route::delete('/delete-student/{studentId}',[StudentController::class, 'destroy']);
     Route::resource('job', JobController::class);
-    Route::delete('job/{jobId}', [JobController::class, 'destroyJob']);
+    Route::delete('job/{jobId}', [JobController::class, 'destroy']);
     Route::get('deleted-jobs', [JobController::class, 'deletedJobs']);
     Route::get('/getUserJob',[JobController::class, 'getUserJob']);
     Route::get('/ops', [AuthController::class, 'geocodeAddress']);
