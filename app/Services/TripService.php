@@ -185,7 +185,9 @@ class TripService
     public function getAllTripsAsPassenger()
     {
         $perPage = 10;
-        return Trip::where('guest_id', auth()->id())->paginate($perPage);
+        return Trip::where('guest_id', auth()->id())
+            ->orderBy('created_at', 'asc')
+            ->paginate($perPage);
     }
     public function getTripDetails($tripId)
     {
