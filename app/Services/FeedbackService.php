@@ -19,9 +19,11 @@ class FeedbackService
     if (Auth::check()) {
         // Access the authenticated user's id
         $userId = Auth::id();
-        
+
         // Use the user id to retrieve feedbacks
-        return Feedback::where('user_id', $userId)->paginate($request->query('per_page', 10));
+        return Feedback::where('user_id', $userId)
+            ->orderBy('created_at', 'asc')
+            ->paginate($request->query('per_page', 10));
     } else {
         // Handle the case where the user is not authenticated
         return response()->json(['error' => 'Unauthorized'], 401);

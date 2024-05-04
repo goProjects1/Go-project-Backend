@@ -39,7 +39,9 @@ class JobController extends BaseController
         $perPage = $request->input('per_page', 10);
 
         // Retrieve user's jobs with pagination
-        $userJob = Job::where('user_id', Auth::user()->getAuthIdentifier())->paginate($perPage);
+        $userJob = Job::where('user_id', Auth::user()->getAuthIdentifier())
+            ->orderBy('created_at', 'asc')
+            ->paginate($perPage);
 
         // Return a JSON response with paginated user jobs
         return response()->json($userJob);

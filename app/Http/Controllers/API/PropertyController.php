@@ -39,7 +39,9 @@ class PropertyController extends BaseController
         $perPage = $request->input('per_page', 10);
 
         // Retrieve user's properties with pagination
-        $userProperties = Property::where('user_id', Auth::user()->getAuthIdentifier())->paginate($perPage);
+        $userProperties = Property::where('user_id', Auth::user()->getAuthIdentifier())
+            ->orderBy('created_at', 'asc')
+            ->paginate($perPage);
 
         return response()->json($userProperties);
     }

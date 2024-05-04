@@ -35,7 +35,6 @@ class AdminController extends Controller
         return response()->json(['message' => 'Admin user has been registered. Thank you', 'data' => $user], 200);
     }
 
-
     public function getProfile(): \Illuminate\Http\JsonResponse
     {
         $id = Auth::user();
@@ -57,36 +56,52 @@ class AdminController extends Controller
     }
     public function getAllTrips(Request $request): \Illuminate\Http\JsonResponse
     {
-        $trips = Trip::paginate($request->query('per_page', 10));
+        // Pagination settings
+        $perPage = $request->query('per_page', 10);
+
+        // Retrieve all trips in ascending order by creation date with pagination
+        $trips = Trip::orderBy('created_at', 'asc')->paginate($perPage);
+
         return response()->json($trips);
     }
+
     public function getAllTripsPerId(Request $request, $tripId): \Illuminate\Http\JsonResponse
     {
-        $trip = Trip::where('id', $tripId)->first();
+        // Retrieve the trip by ID
+        $trip = Trip::where('id', $tripId)->orderBy('created_at', 'asc')->first();
+
         return response()->json($trip);
     }
     public function getAllCompletedTrips(Request $request): \Illuminate\Http\JsonResponse
     {
-        $completedTrips = Trip::where('trip_status', 'completed')->paginate($request->query('per_page', 10));
+        $completedTrips = Trip::where('trip_status', 'completed')
+            ->orderBy('created_at', 'asc')
+            ->paginate($request->query('per_page', 10));
 
         return response()->json($completedTrips);
     }
 
     public function getAllAcceptedTrips(Request $request): \Illuminate\Http\JsonResponse
     {
-        $acceptedTrips = Trip::where('trip_status', 'accepted')->paginate($request->query('per_page', 10));
+        $acceptedTrips = Trip::where('trip_status', 'accepted')
+            ->orderBy('created_at', 'asc')
+            ->paginate($request->query('per_page', 10));
 
         return response()->json($acceptedTrips);
     }
     public function getPendingTrips(Request $request): \Illuminate\Http\JsonResponse
     {
-        $pendingTrips = Trip::where('trip_status', 'pending')->paginate($request->query('per_page', 10));
+        $pendingTrips = Trip::where('trip_status', 'pending')
+            ->orderBy('created_at', 'asc')
+            ->paginate($request->query('per_page', 10));
         return response()->json($pendingTrips);
     }
 
     public function getAllFailedTrips(Request $request): \Illuminate\Http\JsonResponse
     {
-        $failedTrips = Trip::where('trip_status', 'decline')->paginate($request->query('per_page', 10));
+        $failedTrips = Trip::where('trip_status', 'decline')
+            ->orderBy('created_at', 'asc')
+            ->paginate($request->query('per_page', 10));
 
         return response()->json($failedTrips);
     }
