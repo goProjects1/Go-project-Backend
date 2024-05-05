@@ -64,7 +64,7 @@ class PropertyController extends BaseController
     {
         if (is_array($data)) {
             foreach ($data as $propertyData) {
-                if (!isset($propertyData['type'], $propertyData['registration_no'], $propertyData['license_no'])) {
+                if (!isset($propertyData['type'], $propertyData['registration_no'], $propertyData['license_no'], $propertyData['model'])) {
                     return false;
                 }
             }
@@ -90,6 +90,7 @@ class PropertyController extends BaseController
         Property::create([
             'type' => $propertyData['type'],
             'registration_no' => $propertyData['registration_no'],
+            'model' => $propertyData['model'],
             'license_no' => $propertyData['license_no'],
             'user_id' => Auth::user()->getAuthIdentifier(),
         ]);
