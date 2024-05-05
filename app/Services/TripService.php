@@ -56,7 +56,7 @@ class TripService
                         $name = $user->last_name; // Use $user->last_name instead of Auth::user()->last_name
 
                         // Send trip notification
-                        Mail::to($user->email)->send(new TripMail($newTrip, $inviteLink, $property->registration_no, $property->type, $name));
+                        Mail::to($user->email)->send(new TripMail($newTrip, $inviteLink, $property->registration_no, $property->model, $property->type, $name));
                         Log::info("Invitation sent to {$user->email} for trip {$newTrip->id}");
                     }
                 } catch (\Exception $e) {
@@ -72,7 +72,7 @@ class TripService
                         $this->saveTripForUser($trip, $user->id);
 
                         // Send trip notification
-                        Mail::to($user->email)->send(new TripMail($trip, $inviteLink, $property->registration_no, $property->type, $name));
+                        Mail::to($user->email)->send(new TripMail($trip, $inviteLink, $property->registration_no, $property->model, $property->type, $name));
                         Log::info("Invitation sent to {$user->email} for trip {$trip->id}");
 
                         // Save the trip for the user
