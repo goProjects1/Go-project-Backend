@@ -17,6 +17,7 @@ class Property extends Model
         'type',
         'registration_no',
         'license_no',
-        'user_id'
+        'user_id',
+        'model'
     ];
 }
