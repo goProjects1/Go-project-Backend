@@ -16,9 +16,11 @@
     <li><strong>From:</strong> {{ $trip->pickUp }}</li>
     <li><strong>To:</strong> {{ $trip->destination }}</li>
     <li><strong>Meeting Location:</strong> {{ $trip->meeting_point }}</li>
+    <li><strong>Charges:</strong> {{ $trip->charge }}</li>
     <li><strong>Available Seats:</strong> {{ $trip->available_seat }}</li>
     <li><strong>Fee:</strong> £{{ $trip->fee_amount }}</li>
     <li><strong>Property Type:</strong> {{ $type }}</li>
+    <li><strong>Property Model:</strong> {{ $model }}</li>
     <li><strong>Property Registration Number:</strong> {{ $registrationNo }}</li>
     <li><strong>Time Created:</strong> {{ now() }}</li>
 </ul>

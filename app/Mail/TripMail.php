@@ -15,6 +15,7 @@ class TripMail extends Mailable
     public $inviteLink;
     public $registrationNo;
     public $type;
+    public $model;
     public $name;
 
     /**
@@ -22,13 +23,14 @@ class TripMail extends Mailable
      *
      * @return void
      */
-    public function __construct($trip, $inviteLink, $registrationNo, $type, $name)
+    public function __construct($trip, $inviteLink, $registrationNo, $type, $name, $model)
     {
         $this->trip = $trip;
         $this->inviteLink = $inviteLink;
         $this->registrationNo = $registrationNo;
         $this->type = $type;
         $this->name = $name;
+        $this->model = $model;
     }
 
     public function build(): TripMail
@@ -40,7 +42,8 @@ class TripMail extends Mailable
                 'inviteLink' => $this->inviteLink,
                 'registrationNo' => $this->registrationNo,
                 'type' => $this->type,
-                'driver_name' => $this->name
+                'driver_name' => $this->name,
+                'model' => $this->model
             ]);
     }
 }
