@@ -39,7 +39,6 @@ class TripController extends BaseController
             'meeting_point' => 'required',
             'fee_amount' => 'required',
             'fee_option' => 'required',
-            'charges' => 'required',
             'available_seat' => 'required',
             'description' => 'required',
             'property_id' => 'required'
