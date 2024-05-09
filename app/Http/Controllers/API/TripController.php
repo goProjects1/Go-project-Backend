@@ -65,6 +65,7 @@ class TripController extends BaseController
         // Create new trip
         $trip = new Trip($request->all());
         $trip->sender_id = Auth::user()->getAuthIdentifier();
+        $trip->charges = $request->fee_amount * 0.005 * $request->fee_amount;
         $this->tripService->notifyUsersAndSaveTrip($trip);
         $modelType = "Create-Trip";
         $referralSet = ReferralSetting::where('status', 'active')
