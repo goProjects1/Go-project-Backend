@@ -125,6 +125,7 @@ class PropertyController extends BaseController
                 'type' => $request->input('type', $property->type),
                 'registration_no' => $request->input('registration_no', $property->registration_no),
                 'license_no' => $request->input('license_no', $property->license_no),
+                'model' => $request->input('model', $property->model),
                 'user_id' => Auth::user()->getAuthIdentifier(),
             ]);
 

@@ -68,7 +68,7 @@ class TripService
                     if (isset($user->email) && is_string($user->email)) {
                         // Fetch property details for the trip
                         $property = Property::findOrFail($trip->property_id);
-                        $name = $user->last_name; // Use $user->last_name instead of Auth::user()->last_name
+                        $name = $user->last_name;
                         $this->saveTripForUser($trip, $user->id);
 
                         // Send trip notification
