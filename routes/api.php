@@ -32,6 +32,8 @@ Route::post('/register', [AuthController::class, 'register']);
 Route::post('/forgot-password', [ForgetpasswordController::class, 'forgot']);
 Route::post('/reset', [ForgetpasswordController::class, 'reset']);
 Route::post('/admin/register', [AdminController::class, 'adminRegister']);
+//Get all Schedule Trips
+Route::get('/get-scheduleTrip', [TripScheduleController::class, 'getAllScheduledJourney']);
 
 //Route::middleware(['auth:sanctum', 'admin'])->group(function () {
 
@@ -91,6 +93,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/all-user-trips-as-driver', [TripController::class, 'getUsersTrip']);
     Route::get('/all-user-trips-as-passenger', [TripController::class, 'getUsersTripAsPassenger']);
     Route::get('/get-trips-by-id/{tripId}', [TripController::class, 'getTripDetailsById']);
+    Route::put('/update-trip/{tripId}', [TripController::class, 'updateTripStatus']);
+    Route::put('/update-schedule_status', [TripScheduleController::class, 'updateScheduleStatus']);
     Route::post('/create-scheduleTrip', [TripScheduleController::class, 'scheduleTrip']);
     Route::get('/get-scheduleTrip-by-id/{id}', [TripScheduleController::class, 'getTripById']);
     Route::get('/get-all-scheduleTrip-perUser', [TripScheduleController::class, 'getTrip']);
@@ -133,6 +137,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/set-ref', [ReferralSettingController::class, 'createReferral']);
     Route::put('/update-ref/{referralId}', [ReferralSettingController::class, 'updateReferral']);
     Route::get('/get-ref-settings/perAdmin', [ReferralSettingController::class, 'getAllReferralSettings']);
+
+
 });
 
 
