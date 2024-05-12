@@ -26,5 +26,6 @@ class TripSchedule extends Model
         'amount',
         'pay_option',
         'usertype',
+        'schedule_status',
     ];
 }
