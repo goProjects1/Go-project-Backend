@@ -45,6 +45,7 @@ class Trip extends Model
         'available_seat',
         'trip_status',
         'distance',
+        'journey_status',
     ];
 
     // Relationship: A trip belongs to a user as the sender

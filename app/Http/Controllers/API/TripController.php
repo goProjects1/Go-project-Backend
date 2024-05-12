@@ -28,7 +28,7 @@ class TripController extends BaseController
         $this->tripService = $tripService;
         $this->referral = $referral;
     }
-    public function createTrip(Request $request)
+    public function createTrip(Request $request): \Illuminate\Http\JsonResponse
     {
         // Validate the request data as needed
         $request->validate([
@@ -65,6 +65,7 @@ class TripController extends BaseController
         $trip = new Trip($request->all());
         $trip->sender_id = Auth::user()->getAuthIdentifier();
         $trip->charges = $request->fee_amount * 0.005 * $request->fee_amount;
+        $trip->journey_status = "waiting";
         $this->tripService->notifyUsersAndSaveTrip($trip);
         $modelType = "Create-Trip";
         $referralSet = ReferralSetting::where('status', 'active')
@@ -153,6 +154,13 @@ class TripController extends BaseController
         }
 
         return response()->json(['trip' => $trip], 200);
+    }
+
+    public function updateTripStatus(Request $request, $tripId): string
+    {
+        $newStatus = $request->new_status;
+
+        return $this->tripService->updateTripStatus($tripId, $newStatus);
     }
 
 }

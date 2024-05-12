@@ -210,5 +210,30 @@ class TripService
         return null;
     }
 
+    public function updateTripStatus($tripId, $newStatus): string
+    {
+        // Get the authenticated user
+        $user = Auth::user();
+
+        // Find the trip schedule by ID
+        $schedule = Trip::find($tripId);
+
+        // Check if the schedule exists
+        if (!$schedule) {
+            return "Trip not found.";
+        }
+
+        // Check if the authenticated user owns the trip schedule
+        if ($user->id !== $schedule->user_id) {
+            return "Unauthorized. You do not own this trip.";
+        }
+
+        // Update the schedule status
+        $schedule->journey_status = $newStatus;
+        $schedule->save();
+
+        return "Trip status updated successfully.";
+    }
+
 
 }

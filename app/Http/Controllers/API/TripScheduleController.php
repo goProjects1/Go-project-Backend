@@ -51,6 +51,7 @@ class TripScheduleController extends BaseController
                     'user_id' => $tripScheduleData['user_id'],
                     'plan_time' => $planTime,
                     'day' => $day,
+                    'schedule_status'  =>  "active",
                     'to_time' => $toTimes[$index],
                     'frequency' => $tripScheduleData['frequency'],
                     'amount' => $tripScheduleData['amount'],
@@ -116,6 +117,30 @@ class TripScheduleController extends BaseController
         $tripSchedule = TripSchedule::findOrFail($id);
 
         return $this->sendResponse($tripSchedule, 'Trip details retrieved successfully');
+    }
+
+
+    public function getAllScheduledJourney(Request $request)
+    {
+        $latitude = $request->latitude;
+        $longitude = $request->longitude;
+
+        $schedules = $this->tripScheduleService->getAllScheduledJourney($latitude, $longitude);
+
+        if ($schedules->isEmpty()) {
+            return "No active cars are scheduled within this location.";
+        }
+
+        return $schedules;
+    }
+
+
+    public function updateScheduleStatus(Request $request, $scheduleId): string
+    {
+
+        $newStatus = $request->new_status;
+
+        return $this->tripScheduleService->updateScheduleStatus($scheduleId, $newStatus);
     }
 
 }
