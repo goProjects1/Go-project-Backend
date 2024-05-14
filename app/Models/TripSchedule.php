@@ -27,5 +27,7 @@ class TripSchedule extends Model
         'pay_option',
         'usertype',
         'schedule_status',
+        'latitude',
+        'longitude'
     ];
 }

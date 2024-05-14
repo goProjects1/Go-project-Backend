@@ -163,4 +163,17 @@ class TripController extends BaseController
         return $this->tripService->updateTripStatus($tripId, $newStatus);
     }
 
+
+    public function updateTripStatusForPassengers(Request $request, $tripId): string
+    {
+        // Extract new status from the request
+        $newStatus = $request->input('new_status');
+
+        // Call the trip service to update trip status for passengers
+        $response = $this->tripService->updateTripStatusForPassanger($tripId, $newStatus);
+
+        // Return the response from the service
+        return $response;
+    }
+
 }

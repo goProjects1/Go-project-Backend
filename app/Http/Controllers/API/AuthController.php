@@ -57,7 +57,7 @@ class AuthController extends BaseController
         return request()->ip();
     }
 
-    public function AttemptLogin(Request $request)
+    public function AttemptLogin(Request $request): JsonResponse
     {
         //try {
         $email = $request->get('email');
