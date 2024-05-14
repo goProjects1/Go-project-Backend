@@ -210,7 +210,7 @@ class TripService
         return null;
     }
 
-    public function updateTripStatus($tripId, $newStatus): string
+    public function updateTripStatus($tripId, $newStatus,$lat, $long): string
     {
         // Get the authenticated user
         $user = Auth::user();
@@ -230,13 +230,15 @@ class TripService
 
         // Update the schedule status
         $schedule->journey_status = $newStatus;
+        $schedule->latitude = $lat;
+        $schedule->longitude = $long;
         $schedule->save();
 
         return "Trip status updated successfully.";
     }
 
 
-    public function updateTripStatusForPassanger($tripId, $newStatus): string
+    public function updateTripStatusForPassanger($tripId, $newStatus,$lat, $long): string
     {
         // Get the authenticated user
         $user = Auth::user();
@@ -250,12 +252,14 @@ class TripService
         }
 
         // Check if the authenticated user owns the trip schedule
-        if ($user->id !== $schedule->sender_id) {
+        if ($user->id !== $schedule->guest_id) {
             return "Unauthorized. You do not own this trip.";
         }
 
         // Update the schedule status
         $schedule->journey_status = $newStatus;
+        $schedule->latitude = $lat;
+        $schedule->longitude = $long;
         $schedule->save();
 
         return "Trip status updated successfully.";

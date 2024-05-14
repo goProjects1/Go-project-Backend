@@ -10,6 +10,8 @@ use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
+
 
 class ReferralService
 {
@@ -25,7 +27,7 @@ class ReferralService
 
     public function generateUniqueUrl($userName, $referralCode): string
     {
-        return "https://www.azatme.eduland.ng/register?auth={$userName}&referral_code={$referralCode}";
+        return "https://www.goproject.com/register?auth={$userName}&referral_code={$referralCode}";
     }
 
     public function checkSettingEnquiry($modelType): string
