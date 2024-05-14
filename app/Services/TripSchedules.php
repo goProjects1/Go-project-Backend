@@ -22,14 +22,12 @@ class TripSchedules
     public function getAllScheduledJourney($latitude, $longitude)
     {
         // Query the database for trip schedules where the requested latitude and longitude are within the latitude and longitude range
-        $schedules = TripSchedule::where('schedule_status', 'active')
+        return TripSchedule::where('schedule_status', 'active')
             ->where('latitude', '>=', $latitude)
             ->where('latitude', '<=', $latitude)
             ->where('longitude', '>=', $longitude)
             ->where('longitude', '<=', $longitude)
             ->get();
-
-        return $schedules;
     }
 
     public function updateScheduleStatus($scheduleId, $newStatus): string

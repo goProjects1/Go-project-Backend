@@ -28,9 +28,12 @@ class TripScheduleController extends BaseController
             'destination' => 'required',
             'variable_distance' => 'required',
             'description' => 'required',
+            'latitude' => 'required',
+            'longitude' => 'required',
         ]);
 
         $tripScheduleData = $request->all();
+        $tripScheduleData['schedule_status']  =  "active";
         $tripScheduleData['user_id'] = Auth::user()->getAuthIdentifier();
 
         $planTime = $request->input('plan_time');
@@ -51,6 +54,8 @@ class TripScheduleController extends BaseController
                     'user_id' => $tripScheduleData['user_id'],
                     'plan_time' => $planTime,
                     'day' => $day,
+                    'latitude' => $tripScheduleData['latitude'],
+                    'longitude' => $tripScheduleData['longitude'],
                     'schedule_status'  =>  "active",
                     'to_time' => $toTimes[$index],
                     'frequency' => $tripScheduleData['frequency'],
@@ -107,7 +112,7 @@ class TripScheduleController extends BaseController
 
     public function getTrip(): \Illuminate\Http\JsonResponse
     {
-        $tripSchedule = TripSchedule::where('user_id', Auth::user()->getAuthIdentifier());
+        $tripSchedule = TripSchedule::where('user_id', Auth::user()->id)->paginate(10);
 
         return $this->sendResponse($tripSchedule, 'Trip details retrieved successfully');
     }

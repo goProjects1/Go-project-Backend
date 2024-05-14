@@ -94,7 +94,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/all-user-trips-as-passenger', [TripController::class, 'getUsersTripAsPassenger']);
     Route::get('/get-trips-by-id/{tripId}', [TripController::class, 'getTripDetailsById']);
     Route::put('/update-trip/{tripId}', [TripController::class, 'updateTripStatus']);
-    Route::put('/update-schedule_status', [TripScheduleController::class, 'updateScheduleStatus']);
+    Route::put('/update-schedule_status/{scheduleId}', [TripScheduleController::class, 'updateScheduleStatus']);
+    Route::put('/update-trip_status-for-passenger/{tripId}', [TripController::class, 'updateTripStatusForPassengers']);
     Route::post('/create-scheduleTrip', [TripScheduleController::class, 'scheduleTrip']);
     Route::get('/get-scheduleTrip-by-id/{id}', [TripScheduleController::class, 'getTripById']);
     Route::get('/get-all-scheduleTrip-perUser', [TripScheduleController::class, 'getTrip']);
