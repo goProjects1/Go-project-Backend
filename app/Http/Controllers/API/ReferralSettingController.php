@@ -26,12 +26,14 @@ class ReferralSettingController extends BaseController
     }
 
 
+
     public function updateReferral(Request $request, $referralId): \Illuminate\Http\JsonResponse
     {
         $updatedReferral = $this->referralSetting->updateReferral($referralId, $request->all());
 
         return response()->json($updatedReferral);
     }
+
 
     public function getAllReferralSettings(): \Illuminate\Http\JsonResponse
     {

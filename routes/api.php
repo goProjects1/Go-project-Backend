@@ -63,6 +63,10 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
     Route::get('/admin/failed-trips', [AdminController::class, 'getAllFailedTrips']);
     Route::get('/admin/feedbacks', [AdminController::class, 'getAllFeedbacks']);
     Route::put('/feedbacks/{id}/complete', [FeedbackController::class, 'markAsCompleted']);
+    Route::post('/set-ref', [ReferralSettingController::class, 'createReferral']);
+    Route::put('/update-ref/{referralId}', [ReferralSettingController::class, 'updateReferral']);
+    Route::get('/get-ref-settings/perAdmin', [ReferralSettingController::class, 'getAllReferralSettings']);
+
 });
 
 // Auth guided routes
@@ -115,9 +119,6 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/generate-link', [ReferralController::class, 'generateReferralUrl']);
     Route::get('/get-refPoint-per-user', [ReferralController::class, 'getAllReferral']);
 
-    Route::post('/set-ref', [ReferralSettingController::class, 'createReferral']);
-    Route::put('/update-ref/{referralId}', [ReferralSettingController::class, 'updateReferral']);
-    Route::get('/get-ref-settings/perAdmin', [ReferralSettingController::class, 'getAllReferralSettings']);
 
     //Payment
     Route::post('/make-payment/{tripId}', [PaymentController::class, 'inviteUserToTripPayment']);

@@ -156,11 +156,13 @@ class TripController extends BaseController
         return response()->json(['trip' => $trip], 200);
     }
 
-    public function updateTripStatus(Request $request, $tripId): string
+    public function updateTripStatus(Request $request, $tripId, $lat, $long): string
     {
         $newStatus = $request->new_status;
+        $lat = $request->input('latitude');
+        $long = $request->input('longitude');
 
-        return $this->tripService->updateTripStatus($tripId, $newStatus);
+        return $this->tripService->updateTripStatus($tripId, $newStatus,$lat, $long);
     }
 
 
@@ -168,12 +170,10 @@ class TripController extends BaseController
     {
         // Extract new status from the request
         $newStatus = $request->input('new_status');
-
+        $lat = $request->input('latitude');
+        $long = $request->input('longitude');
         // Call the trip service to update trip status for passengers
-        $response = $this->tripService->updateTripStatusForPassanger($tripId, $newStatus);
-
-        // Return the response from the service
-        return $response;
+        return $this->tripService->updateTripStatusForPassanger($tripId, $newStatus,$lat, $long);
     }
 
 }
