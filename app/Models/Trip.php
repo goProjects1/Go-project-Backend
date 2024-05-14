@@ -35,6 +35,8 @@ class Trip extends Model
         'fee_option',
         'latitude',
         'longitude',
+        'destLongitude',
+        'destLatitude',
         'charges',
         'fee_amount',
         'description',

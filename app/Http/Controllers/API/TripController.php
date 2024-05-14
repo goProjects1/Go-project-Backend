@@ -41,7 +41,11 @@ class TripController extends BaseController
             'fee_option' => 'required',
             'available_seat' => 'required',
             'description' => 'required',
-            'property_id' => 'required'
+            'property_id' => 'required',
+            'latitude'  => 'required',
+            'longitude' => 'required',
+            'destLatitude' => 'required',
+            'destLongitude' => 'required'
         ]);
         // Check if user is currently on a trip
         $user_id = Auth::user()->getAuthIdentifier();
@@ -156,13 +160,13 @@ class TripController extends BaseController
         return response()->json(['trip' => $trip], 200);
     }
 
-    public function updateTripStatus(Request $request, $tripId, $lat, $long): string
+    public function updateTripStatus(Request $request, $tripId): string
     {
         $newStatus = $request->new_status;
         $lat = $request->input('latitude');
         $long = $request->input('longitude');
 
-        return $this->tripService->updateTripStatus($tripId, $newStatus,$lat, $long);
+        return $this->tripService->updateTripStatus($tripId, $newStatus, $lat, $long);
     }
 
 
