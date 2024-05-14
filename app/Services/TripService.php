@@ -210,7 +210,7 @@ class TripService
         return null;
     }
 
-    public function updateTripStatus($tripId, $newStatus,$lat, $long): string
+    public function updateTripStatus($tripId, $newStatus, $lat, $long): string
     {
         // Get the authenticated user
         $user = Auth::user();
@@ -228,10 +228,20 @@ class TripService
             return "Unauthorized. You do not own this trip.";
         }
 
+        // Update latitude and longitude if status is 'waiting' or 'going'
+        if ($newStatus === 'waiting' || $newStatus === 'going') {
+            $schedule->latitude = $lat;
+            $schedule->longitude = $long;
+        }
+
+        // Update destination latitude and longitude if status is 'stopping'
+        if ($newStatus === 'stopping') {
+            $schedule->destLatitude = $lat;
+            $schedule->destLongitude = $long;
+        }
+
         // Update the schedule status
         $schedule->journey_status = $newStatus;
-        $schedule->latitude = $lat;
-        $schedule->longitude = $long;
         $schedule->save();
 
         return "Trip status updated successfully.";
@@ -256,10 +266,20 @@ class TripService
             return "Unauthorized. You do not own this trip.";
         }
 
+        // Update latitude and longitude if status is 'waiting' or 'going'
+        if ($newStatus === 'waiting' || $newStatus === 'going') {
+            $schedule->latitude = $lat;
+            $schedule->longitude = $long;
+        }
+
+        // Update destination latitude and longitude if status is 'stopping'
+        if ($newStatus === 'stopping') {
+            $schedule->destLatitude = $lat;
+            $schedule->destLongitude = $long;
+        }
+
         // Update the schedule status
         $schedule->journey_status = $newStatus;
-        $schedule->latitude = $lat;
-        $schedule->longitude = $long;
         $schedule->save();
 
         return "Trip status updated successfully.";
