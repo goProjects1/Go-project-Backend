@@ -66,7 +66,8 @@ Route::middleware(['auth:sanctum', 'admin'])->group(function () {
     Route::post('/set-ref', [ReferralSettingController::class, 'createReferral']);
     Route::put('/update-ref/{referralId}', [ReferralSettingController::class, 'updateReferral']);
     Route::get('/get-ref-settings/perAdmin', [ReferralSettingController::class, 'getAllReferralSettings']);
-
+    Route::get('referral-settings', [ReferralSettingController::class, 'getAllAdinReferralSettings']);
+    Route::get('referral-settings/{id}', [ReferralSettingController::class, 'getReferralSetting']);
 });
 
 // Auth guided routes

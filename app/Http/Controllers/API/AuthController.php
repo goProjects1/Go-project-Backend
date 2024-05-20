@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Services\ReferralService;
 use Illuminate\Http\Request;
 use App\Http\Controllers\API\BaseController as BaseController;
 use Illuminate\Support\Facades\Auth;
@@ -27,7 +28,14 @@ use Grimzy\LaravelMysqlSpatial\Types\Point;
 class AuthController extends BaseController
 {
     //
-    public function register(Request $request)
+
+    public $referral;
+
+    public function __construct(ReferralService $referral)
+    {
+        $this->referral = $referral;
+    }
+    public function register(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
             'email' => 'required|email|unique:users',
@@ -40,11 +48,22 @@ class AuthController extends BaseController
             return $this->sendError('Error validation', $validator->errors());
         }
 
+        $uniqueCode = $request->unique_code;
+
+        $result = $this->referral->processReferral($uniqueCode, $request->email);
+
+        if ($result['success']) {
+            Log::info($result['message']);
+        } else {
+            Log::error($result['error']);
+        }
+
         $input = $request->all();
+        $input['unique_code'] = $uniqueCode;
         $input['password'] = bcrypt($input['password']);
         $user = User::create($input);
-        //$success['token'] =  $user->createToken('MyAuthApp')->plainTextToken;
         $success = $user;
+
 
         return $this->sendResponse($success, 'User created successfully.');
     }

@@ -35,12 +35,21 @@ class ReferralSettingController extends BaseController
     }
 
 
-    public function getAllReferralSettings(): \Illuminate\Http\JsonResponse
+    public function getAllAdinReferralSettings(Request $request): \Illuminate\Http\JsonResponse
     {
-        $adminId = Auth::user()->getAuthIdentifier();
+        $perPage = $request->query('per_page', 10);
+        $referralSettings = $this->referralSetting->getAllReferralSettings($perPage);
+        return response()->json($referralSettings, 200);
+    }
 
-        $referralSettings = ReferralSetting::where('admin_id', $adminId)->get();
+    public function getReferralSetting($id): \Illuminate\Http\JsonResponse
+    {
+        $referralSetting = $this->referralSetting->getReferralSettingById($id);
 
-        return response()->json($referralSettings);
+        if (is_null($referralSetting)) {
+            return response()->json(['message' => 'Referral Setting not found'], 404);
+        }
+
+        return response()->json($referralSetting, 200);
     }
 }
