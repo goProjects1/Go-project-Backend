@@ -57,4 +57,14 @@ class ReferralSettingService
         return ReferralSetting::find($referralId);
     }
 
+    public function getAllReferralSettings($perPage = 10)
+    {
+        return ReferralSetting::paginate($perPage);
+    }
+
+    public function getReferralSettingById($id)
+    {
+        return ReferralSetting::find($id);
+    }
+
 }
