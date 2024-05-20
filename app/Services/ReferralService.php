@@ -123,5 +123,24 @@ class ReferralService
         }
     }
 
+    public function countReferralPerUser(): ?array
+    {
+        // Get the authenticated user
+        $authenticatedUser = auth()->user();
+
+        // If the user is authenticated
+        if ($authenticatedUser) {
+            // Paginate the referrals for the authenticated user
+            $referrals = Referral_By::where('user_id', $authenticatedUser->id)->paginate(10);
+
+            // Count the total number of referrals for the authenticated user
+            $referralCount = Referral_By::where('user_id', $authenticatedUser->id)->count();
+
+            return ['referrals' => $referrals, 'total_referrals' => $referralCount];
+        }
+
+        return null;
+    }
+
 
 }

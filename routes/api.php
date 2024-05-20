@@ -119,6 +119,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     // Referrals
     Route::get('/generate-link', [ReferralController::class, 'generateReferralUrl']);
     Route::get('/get-refPoint-per-user', [ReferralController::class, 'getAllReferral']);
+    Route::get('/count-refPoint-per-user', [ReferralController::class, 'countReferralPerUsers']);
 
 
     //Payment

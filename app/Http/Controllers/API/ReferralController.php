@@ -46,4 +46,16 @@ class ReferralController extends BaseController
         $referral = Referral::where('user_id', $userId)->get();
         return $this->sendResponse($referral, 200);
     }
+    public function countReferralPerUsers(Request $request): \Illuminate\Http\JsonResponse
+    {
+        // Call the method from the referral service
+        $referralData = $this->referral->countReferralPerUser();
+        // Check if referral data is available
+        if ($referralData !== null) {
+            return response()->json(['referrals' => $referralData['referrals'], 'total_referrals' => $referralData['total_referrals']], 200);
+        } else {
+            return response()->json(['error' => 'User not authenticated'], 401);
+        }
+    }
+
 }
