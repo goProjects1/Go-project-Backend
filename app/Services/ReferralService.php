@@ -30,6 +30,17 @@ class ReferralService
         return "https://go-project-ashy.vercel.app/auth/signup?auth={$userName}&referral_code={$referralCode}";
     }
 
+    public function getReferralCode()
+    {
+        $authUser = Auth::user();
+
+        if ($authUser->hasReferral) {
+            return $authUser->referral_code;
+        }
+
+        return null;
+    }
+
     public function checkSettingEnquiry($modelType): string
     {
         $refSetting = $this->getUserReferral();

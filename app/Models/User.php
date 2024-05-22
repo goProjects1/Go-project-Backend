@@ -51,6 +51,8 @@ class User extends Authenticatable
         'address',
         'house_number',
         'usertype',
+        'hasReferral',
+        'referral_url',
     ];
 
 
