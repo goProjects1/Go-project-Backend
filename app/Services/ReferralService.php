@@ -27,7 +27,7 @@ class ReferralService
 
     public function generateUniqueUrl($userName, $referralCode): string
     {
-        return "https://www.goproject.com/register?auth={$userName}&referral_code={$referralCode}";
+        return "https://go-project-ashy.vercel.app/auth/signup?auth={$userName}&referral_code={$referralCode}";
     }
 
     public function checkSettingEnquiry($modelType): string

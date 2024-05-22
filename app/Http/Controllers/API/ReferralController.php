@@ -24,14 +24,20 @@ class ReferralController extends BaseController
         $authUser = Auth::user();
 
         $referralCode = $this->referral->generateReferralCode();
-        $uniqueUrl = $this->referral->generateUniqueUrl($authUser->name, $referralCode);
+        if (!empty($authUser->first_name)) {
+            $uniqueUrl = $this->referral->generateUniqueUrl($authUser->first_name, $referralCode);
+        }
 
-        $referralData = [
-            'user_id' => $authUser->id,
-            'ref_code' => $referralCode,
-            'ref_url' => $uniqueUrl,
-            'ref_by' => $authUser->name,
-        ];
+        if (!empty($authUser->id)) {
+            if (!empty($authUser->first_name)) {
+                $referralData = [
+                    'user_id' => $authUser->id,
+                    'ref_code' => $referralCode,
+                    'ref_url' => $uniqueUrl,
+                    'ref_by' => $authUser->first_name,
+                ];
+            }
+        }
 
         $referral = $this->referral->create($referralData);
 
