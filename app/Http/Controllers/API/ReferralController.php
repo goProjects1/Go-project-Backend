@@ -37,6 +37,11 @@ class ReferralController extends BaseController
                     'ref_by' => $authUser->first_name,
                 ];
             }
+
+            // Update the auth user's referral_url and hasReferral columns
+            $authUser->referral_url = $uniqueUrl;
+            $authUser->hasReferral = true;
+            $authUser->save();
         }
 
         $referral = $this->referral->create($referralData);
@@ -45,6 +50,14 @@ class ReferralController extends BaseController
         return $this->sendResponse(['url' => $uniqueUrl], 200);
     }
 
+    public function getReferralCode(): \Illuminate\Http\JsonResponse
+    {
+        $referralCode = $this->referral->getReferralCode();
+        if ($referralCode) {
+            return response()->json(['referral_code' => $referralCode], 200);
+        }
+        return response()->json(['message' => 'User has not joined referral'], 404);
+    }
 
     public function getAllReferral(): \Illuminate\Http\JsonResponse
     {
