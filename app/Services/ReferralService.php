@@ -33,8 +33,7 @@ class ReferralService
     public function getReferralCode()
     {
         $authUser = Auth::user();
-
-        if ($authUser->hasReferral) {
+        if ($authUser->hasReferral ==  1) {
             return $authUser->referral_code;
         }
 
