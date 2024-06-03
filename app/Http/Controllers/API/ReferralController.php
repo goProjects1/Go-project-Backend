@@ -56,6 +56,7 @@ class ReferralController extends BaseController
         if ($referralCode) {
             return response()->json(['referral_code' => $referralCode], 200);
         }
+
         return response()->json(['message' => 'User has not joined referral'], 404);
     }
 

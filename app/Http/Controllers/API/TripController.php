@@ -68,7 +68,7 @@ class TripController extends BaseController
         // Create new trip
         $trip = new Trip($request->all());
         $trip->sender_id = Auth::user()->getAuthIdentifier();
-        $trip->charges = $request->fee_amount * 0.005 * $request->fee_amount;
+        $trip->charges = $request->fee_amount * 0.005;
         $trip->journey_status = "waiting";
         $this->tripService->notifyUsersAndSaveTrip($trip);
         $modelType = "Create-Trip";
