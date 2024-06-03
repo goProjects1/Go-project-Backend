@@ -125,19 +125,32 @@ class TripScheduleController extends BaseController
     }
 
 
-    public function getAllScheduledJourney(Request $request)
+    public function getAllScheduledJourney(Request $request): \Illuminate\Http\JsonResponse
     {
-        $latitude = $request->latitude;
-        $longitude = $request->longitude;
+        // Retrieve latitude and longitude from request
+        $latitude = $request->input('latitude');
+        $longitude = $request->input('longitude');
 
-        $schedules = $this->tripScheduleService->getAllScheduledJourney($latitude, $longitude);
-
-        if ($schedules->isEmpty()) {
-            return "No active cars are scheduled within this location.";
+        // Validate request data
+        if (is_null($latitude) || is_null($longitude)) {
+            return response()->json(['error' => 'Latitude and longitude are required.'], 400);
         }
 
-        return $schedules;
+        try {
+            $schedules = $this->tripScheduleService->getAllScheduledJourney($latitude, $longitude);
+
+            if ($schedules->isEmpty()) {
+                return response()->json(['message' => 'No active cars are scheduled within this location.'], 404);
+            }
+
+            return response()->json($schedules, 200);
+        } catch (\InvalidArgumentException $e) {
+            return response()->json(['error' => $e->getMessage()], 400);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'An unexpected error occurred.'], 500);
+        }
     }
+
 
 
     public function updateScheduleStatus(Request $request, $scheduleId): string
