@@ -173,7 +173,7 @@ class TripController extends BaseController
     public function updateTripStatusForPassengers(Request $request, $tripId): string
     {
         // Extract new status from the request
-        $newStatus = $request->input('new_status');
+        $newStatus = $request->input('journey_status');
         $lat = $request->input('latitude');
         $long = $request->input('longitude');
         // Call the trip service to update trip status for passengers
