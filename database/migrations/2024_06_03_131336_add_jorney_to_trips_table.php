@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class AddJorneyStatusToTripsTable extends Migration
+class AddJorneyToTripsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -15,7 +15,6 @@ class AddJorneyStatusToTripsTable extends Migration
     {
         Schema::table('trips', function (Blueprint $table) {
             //
-
             $table->enum('journey_status', array('going','waiting','stopping'))->nullable();
 
         });
