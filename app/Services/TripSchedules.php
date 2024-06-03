@@ -21,6 +21,10 @@ class TripSchedules
 
     public function getAllScheduledJourney($latitude, $longitude)
     {
+        // Validate inputs
+        if (is_null($latitude) || is_null($longitude)) {
+            throw new \InvalidArgumentException('Latitude and longitude are required.');
+        }
         // Query the database for trip schedules where the requested latitude and longitude are within the latitude and longitude range
         return TripSchedule::where('schedule_status', 'active')
             ->where('latitude', '>=', $latitude)
@@ -29,6 +33,7 @@ class TripSchedules
             ->where('longitude', '<=', $longitude)
             ->get();
     }
+
 
     public function updateScheduleStatus($scheduleId, $newStatus): string
     {
