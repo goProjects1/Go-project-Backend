@@ -8,7 +8,6 @@ use App\Models\Property;
 use App\Models\Trip;
 use App\Mail\TripMail;
 use App\Models\User;
-use http\Env\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -53,7 +52,7 @@ class TripService
                     if (isset($user->email) && is_string($user->email)) {
                         // Fetch property details for the trip
                         $property = Property::findOrFail($trip->property_id);
-                        $name = $user->last_name; // Use $user->last_name instead of Auth::user()->last_name
+                        $name = $user->last_name;
 
                         // Send trip notification
                         Mail::to($user->email)->send(new TripMail($newTrip, $inviteLink, $property->registration_no, $property->model, $property->type, $name));
@@ -139,6 +138,7 @@ class TripService
         }
 
     }
+
     protected function notifyTripCreator(Trip $trip)
     {
         Mail::to($trip->sender->email)->send(new TripNotification($trip));
@@ -148,6 +148,7 @@ class TripService
     {
         Mail::to($trip->sender->email)->send(new TripDecline($trip));
     }
+
     public function declineTrip(Trip $trip): bool
     {
         $userId = Auth::id();
@@ -164,23 +165,19 @@ class TripService
         } else {
             return false;
         }
-
     }
-
 
     public function getAllTripsPerUser($userId)
     {
         if (!Auth::check()) {
             return response()->json(['error' => 'Unauthenticated.'], 401);
         }
-
         $perPage = 10;
         $user_id = Auth::user()->getAuthIdentifier();
 
         return Trip::where('sender_id', $user_id)->paginate($perPage);
 
     }
-
 
     public function getAllTripsAsPassenger()
     {
@@ -189,6 +186,7 @@ class TripService
             ->orderBy('created_at', 'asc')
             ->paginate($perPage);
     }
+
     public function getTripDetails($tripId)
     {
         // Fetch trip details with sender's email
@@ -205,8 +203,6 @@ class TripService
 
             return $trip;
         }
-
-        // If trip with given tripId is not found, return null or handle accordingly
         return null;
     }
 
@@ -246,7 +242,6 @@ class TripService
 
         return "Trip status updated successfully.";
     }
-
 
     public function updateTripStatusForPassanger($tripId, $newStatus,$lat, $long): string
     {
