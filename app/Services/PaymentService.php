@@ -92,7 +92,7 @@ class PaymentService
         return true;
     }
 
-    private function processPayThruPayments($payment, $emailsArray, $request, $emailCount): \Illuminate\Http\JsonResponse
+    private function processPayThruPayments($payment, $emailsArray, $request, $emailCount): bool
     {
         $payable = $this->calculatePayableAmount($payment, $request, $emailsArray[0], $emailCount, 0);
         $token = $this->getPaythruToken();
