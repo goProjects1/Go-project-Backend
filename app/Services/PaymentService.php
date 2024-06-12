@@ -10,49 +10,71 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Stripe\Checkout\Session;
+use App\Mail\SendUserInviteMail;
 use Stripe\Exception\ApiErrorException;
 use Stripe\Stripe;
 use Illuminate\Auth\AuthenticationException;
 
 class PaymentService
 {
+
+    public $paythruService;
+
+
+    public function __construct(PaythruService $paythruService)
+    {
+        $this->paythruService = $paythruService;
+
+    }
+
+    /**
+     * @throws ApiErrorException
+     */
     public function inviteUserToPayment(Trip $payment, $emails, $request): bool
     {
-        $userPayments = explode(',', $emails);
-        $count = count($userPayments);
+        $paymentChannel = $request->paymentChannel;
+        $emailsArray = explode(',', $emails);
+        $emailCount = count($emailsArray);
+
+        if ($paymentChannel === 'stripe') {
+            return $this->processStripePayments($payment, $emailsArray, $request, $emailCount);
+        } elseif ($paymentChannel === 'payThru') {
+            return $this->processPayThruPayments($payment, $emailsArray, $request, $emailCount);
+        }
+
+        return true;
+    }
+
+    private function processStripePayments($payment, $emailsArray, $request, $emailCount): bool
+    {
         Stripe::setApiKey(env('STRIPE_SECRET_KEY'));
-        foreach ($userPayments as $key => $em) {
+
+        foreach ($emailsArray as $key => $email) {
             try {
-                $em = trim($em, '"');
-                $payable = null;
+                $email = trim($email, '"');
+                $payable = $this->calculatePayableAmount($payment, $request, $email, $emailCount, $key);
+                $passenger = User::where('email', $email)->first();
+                $passengerId = $passenger ? $passenger->id : null;
 
-                // Calculate payable amount based on split method
-                $payable = $this->calculatePayableAmount($payment, $request, $em, $count, $key, $payable);
-                $passengerId  = User::where('email', $em)->first();
-
-                // Create payment record
-                $info = Payment::create([
+                $paymentRecord = Payment::create([
                     'user_id' => Auth::user()->id,
-                    'passenger_id' => $passengerId ? $passengerId->id : null,
+                    'passenger_id' => $passengerId,
                     'trip_id' => $payment->id,
                     'unique_code' => Str::random(10),
-                    'email' => $em,
+                    'email' => $email,
                     'split_method_id' => $request->split_method_id,
                     'reason' => $request->reason,
                     'description' => $request->description,
                     'amount' => $payable,
                 ]);
 
-                // Create a new Stripe Checkout session
                 $session = Session::create([
                     'payment_method_types' => ['card'],
                     'line_items' => [[
                         'price_data' => [
                             'currency' => 'gbp',
                             'unit_amount' => $payable * 100,
-                            'product_data' => [
-                                'name' => 'Payment for Services',
-                            ],
+                            'product_data' => ['name' => 'Payment for Services'],
                         ],
                         'quantity' => 1,
                     ]],
@@ -61,10 +83,8 @@ class PaymentService
                     'cancel_url' => 'https://go-project-ashy.vercel.app/account/payment-status?result=declined',
                 ]);
 
-                // Send the Payment Link to the user via email
-                $this->sendPaymentLinkEmail($em, $session->url);
+                $this->sendPaymentLinkEmail($email, $session->url);
             } catch (ApiErrorException $e) {
-                // Handle any errors
                 throw $e;
             }
         }
@@ -72,32 +92,155 @@ class PaymentService
         return true;
     }
 
-    private function calculatePayableAmount($payment, $request, $em, $count, $key, $payable)
+    private function processPayThruPayments($payment, $emailsArray, $request, $emailCount): \Illuminate\Http\JsonResponse
     {
-        if ($request->split_method_id == 1) {
-            $payable = $request->amount;
-        } elseif ($request->split_method_id == 2) {
-            if ($request->has('percentage')) {
-                $payable = $request->amount * $request->percentage / 100;
-            } elseif ($request->has('percentage_per_user')) {
-                $ppu = json_decode($request->percentage_per_user);
-                $payable = $ppu->$em * $request->amount / 100;
+        $payable = $this->calculatePayableAmount($payment, $request, $emailsArray[0], $emailCount, 0);
+        $token = $this->getPaythruToken();
+        if (!$token) {
+            return false;
+        }
+
+        $payers = [];
+        foreach ($emailsArray as $key => $email) {
+            $payable = $this->calculatePayableAmount($payment, $request, $email, $emailCount, $key);
+            $passenger = User::where('email', $email)->first();
+            $name = $passenger ? $passenger->first_name : null;
+
+            Payment::create([
+                'user_id' => Auth::user()->id,
+                'passenger_id' => $passenger ? $passenger->id : null,
+                'trip_id' => $payment->id,
+                'email' => $email,
+                'split_method_id' => $request->split_method_id,
+                'reason' => $request->reason,
+                'description' => $request->description,
+                'amount' => $payable,
+                'bankName' => $request->bankName,
+                'account_name' => $request->account_name,
+                'bankCode' => $request->bankCode,
+                'account_number' => $request->account_number,
+            ]);
+
+            $payers[] = ["payerEmail" => $email, "paymentAmount" => $payable, "payerName" => $name];
+        }
+
+        $data = [
+            'amount' => $payment->amount,
+            'productId' => env('PayThru_expense_productid'),
+            'transactionReference' => time() . $payment->id,
+            'paymentDescription' => $request->description,
+            'paymentType' => 1,
+            'sign' => hash('sha512', $payable . env('PayThru_App_Secret')),
+            'displaySummary' => true,
+        ];
+
+        if ($emailCount > 1) {
+            $data['splitPayInfo'] = ['inviteSome' => false, 'payers' => $payers];
+        }
+
+        $response = Http::withHeaders([
+            'Content-Type' => 'application/json',
+            'Authorization' => $token,
+        ])->post(env('PayThru_Base_Live_Url') . '/transaction/create', $data);
+
+        if ($response->failed()) {
+            return false;
+        }
+
+        return $this->handlePayThruResponse($response, $payment, $request, $data);
+    }
+
+    private function handlePayThruResponse($response, $payment, $request, $data): \Illuminate\Http\JsonResponse
+    {
+        $transaction = json_decode($response->body(), true);
+
+        if (!$transaction['successful']) {
+            return response()->json(['message' => 'Whoops! ' . $transaction['message']], 400);
+        }
+
+        if (isset($data['splitPayInfo'])) {
+            foreach ($transaction['splitPayResult']['result'] as $split) {
+                $user = Trip::where('user_id', Auth::user()->id)->where('email', $split['receipient'])->first();
+                $authUser = Auth::user();
+                $userName = $user ? $user->first_name : null;
+
+                Mail::to($split['receipient'], $authUser->name, $userName)
+                    ->send(new SendUserInviteMail($split, $authUser, $userName));
+
+                $paylink = $split['paylink'];
+                if ($paylink) {
+                    $reference = last(explode('/', $paylink));
+                    Payment::where(['email' => $split['receipient'], 'trip_id' => $payment->id, 'user_id' => Auth::user()->id])
+                        ->update(['paymentReference' => $reference]);
+                }
             }
-        } elseif ($request->split_method_id == 3) {
-            $payable = round($request->amount / $count, 3);
-            if ($key == $count - 1) {
-                $payable = round($request->amount - ($payable * ($count - 1)), 2);
+        } else {
+            $paylink = $transaction['payLink'];
+            $recipient = $request->email;
+            $user = Trip::where('user_id', Auth::user()->id)->where('email', $recipient)->first();
+            $authUser = Auth::user();
+            $userName = $user ? $user->first_name : null;
+
+            Mail::to($recipient, $authUser->name, $userName)
+                ->send(new SendUserInviteMail(['paylink' => $paylink, 'amount' => $data['amount'], 'receipient' => $recipient], $authUser, $userName));
+
+            if ($paylink) {
+                $reference = last(explode('/', $paylink));
+                Payment::where(['email' => $recipient, 'trip_id' => $payment->id, 'user_id' => Auth::user()->id])
+                    ->update(['paymentReference' => $reference]);
             }
         }
+
+        return true;
+    }
+
+    private function getPaythruToken()
+    {
+        $token = $this->paythruService->handle();
+
+        if (!$token) {
+            return "Token retrieval failed";
+        }
+
+        if (is_string($token) && strpos($token, '403') !== false) {
+            return response()->json(['error' => 'Access denied. You do not have permission to access this resource.'], 403);
+        }
+
+        return $token;
+    }
+
+    private function calculatePayableAmount($payment, $request, $email, $count, $key)
+    {
+        $payable = 0;
+        $amount = $request->amount;
+
+        switch ($request->split_method_id) {
+            case 1:
+                $payable = $amount;
+                break;
+            case 2:
+                if ($request->has('percentage')) {
+                    $payable = $amount * $request->percentage / 100;
+                } elseif ($request->has('percentage_per_user')) {
+                    $percentages = json_decode($request->percentage_per_user, true);
+                    $payable = $percentages[$email] * $amount / 100;
+                }
+                break;
+            case 3:
+                $payable = round($amount / $count, 3);
+                if ($key == $count - 1) {
+                    $payable = round($amount - ($payable * ($count - 1)), 2);
+                }
+                break;
+        }
+
         return $payable;
     }
 
-    private function sendPaymentLinkEmail($em, $paymentLink)
+    private function sendPaymentLinkEmail($email, $paymentLink)
     {
-        // Send email with payment link
-        Mail::raw("Please proceed to the following link to complete your payment: $paymentLink", function ($message) use ($em) {
-            $message->to($em)
-                ->subject('Payment Link');
+        Mail::raw("Please proceed to the following link to complete your payment: $paymentLink", function ($message) use ($email) {
+            $message->to($email)->subject('Payment Link');
         });
     }
 
@@ -112,7 +255,5 @@ class PaymentService
             throw new AuthenticationException('User is not authenticated.');
         }
     }
-
-
 
 }
