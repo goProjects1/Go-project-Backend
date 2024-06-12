@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
+use App\Models\Property;
 use App\Models\TripSchedule;
 use App\Services\TripSchedules;
 use Illuminate\Http\Request;
@@ -33,49 +34,59 @@ class TripScheduleController extends BaseController
         ]);
 
         $tripScheduleData = $request->all();
-        $tripScheduleData['schedule_status']  =  "active";
-        $tripScheduleData['user_id'] = Auth::user()->getAuthIdentifier();
-
+        $tripScheduleData['schedule_status'] = "active";
+        $tripScheduleData['user_id'] = Auth::id();
+        $ownProperty = $request->ownProperty;
         $planTime = $request->input('plan_time');
-        $days = (array) $request->input('day');
-        $toTimes = (array) $request->input('to_time');
+        $days = (array)$request->input('day');
+        $toTimes = (array)$request->input('to_time');
 
-        if ($planTime == 'dynamic') {
-
-            $createdTripSchedules = [];
-
-            foreach ($days as $index => $day) {
-                $dynamicData = [
-                    'usertype' => $tripScheduleData['usertype'],
-                    'pickUp' => $tripScheduleData['pickUp'],
-                    'destination' => $tripScheduleData['destination'],
-                    'variable_distance' => $tripScheduleData['variable_distance'],
-                    'description' => $tripScheduleData['description'],
-                    'user_id' => $tripScheduleData['user_id'],
-                    'plan_time' => $planTime,
-                    'day' => $day,
-                    'latitude' => $tripScheduleData['latitude'],
-                    'longitude' => $tripScheduleData['longitude'],
-                    'schedule_status'  =>  "active",
-                    'to_time' => $toTimes[$index],
-                    'frequency' => $tripScheduleData['frequency'],
-                    'amount' => $tripScheduleData['amount'],
-                    'pay_option' => $tripScheduleData['pay_option'],
-                ];
-
-                $createdTripSchedule = $this->tripScheduleService->createTripSchedule($dynamicData);
-                $createdTripSchedules[] = array_merge($createdTripSchedule->toArray(), ['day' => $day]);
-            }
-
-            return $this->sendResponse($createdTripSchedules, 'Trips created successfully');
-        } else {
-
-            $tripScheduleData['day'] = $days[0];
-            $tripScheduleData['to_time'] = $toTimes[0];
-
-            $createdTripSchedule = $this->tripScheduleService->createTripSchedule($tripScheduleData);
-            return $this->sendResponse(array_merge($createdTripSchedule->toArray(), ['day' => $days[0]]), 'Trip scheduled successfully');
+        if ($ownProperty) {
+            $own = Property::where('id', $ownProperty)
+                ->where('user_id', Auth::id())
+                ->first();
+            $tripScheduleData['ownProperty'] = $own;
         }
+
+
+        if ($planTime === 'dynamic') {
+            return $this->handleDynamicPlanTime($tripScheduleData, $days, $toTimes);
+        } else {
+            return $this->handleStaticPlanTime($tripScheduleData, $days[0], $toTimes[0]);
+        }
+    }
+
+    private function handleDynamicPlanTime(array $tripScheduleData, array $days, array $toTimes): \Illuminate\Http\JsonResponse
+    {
+        $createdTripSchedules = [];
+
+        foreach ($days as $index => $day) {
+            $dynamicData = $this->prepareDynamicData($tripScheduleData, $day, $toTimes[$index]);
+
+            $createdTripSchedule = $this->tripScheduleService->createTripSchedule($dynamicData);
+            $createdTripSchedules[] = array_merge($createdTripSchedule->toArray(), ['day' => $day]);
+        }
+
+        return $this->sendResponse($createdTripSchedules, 'Trips created successfully');
+    }
+
+    private function handleStaticPlanTime(array $tripScheduleData, $day, $toTime): \Illuminate\Http\JsonResponse
+    {
+        $tripScheduleData['day'] = $day;
+        $tripScheduleData['to_time'] = $toTime;
+
+        $createdTripSchedule = $this->tripScheduleService->createTripSchedule($tripScheduleData);
+        return $this->sendResponse(array_merge($createdTripSchedule->toArray(), ['day' => $day]), 'Trip scheduled successfully');
+    }
+
+    private function prepareDynamicData(array $tripScheduleData, $day, $toTime): array
+    {
+        $dynamicData = $tripScheduleData;
+        $dynamicData['plan_time'] = 'dynamic';
+        $dynamicData['day'] = $day;
+        $dynamicData['to_time'] = $toTime;
+
+        return $dynamicData;
     }
 
 
