@@ -31,23 +31,32 @@ class TripScheduleController extends BaseController
             'description' => 'required',
             'latitude' => 'required',
             'longitude' => 'required',
+            'destLatitude' => 'required',
+            'destLongitude' => 'required',
         ]);
 
         $tripScheduleData = $request->all();
         $tripScheduleData['schedule_status'] = "active";
         $tripScheduleData['user_id'] = Auth::id();
         $ownProperty = $request->ownProperty;
+        $available_seat = $request->available_seat;
         $planTime = $request->input('plan_time');
         $days = (array)$request->input('day');
         $toTimes = (array)$request->input('to_time');
+        $allowUserMeetingPoint = $request->allowUserMeetingPoint;
+        if ($allowUserMeetingPoint) {
+            $tripScheduleData['allowUserMeetingPoint'] = true;
+        } else {
+            $tripScheduleData['allowUserMeetingPoint'] = false;
+        }
 
         if ($ownProperty) {
             $own = Property::where('id', $ownProperty)
                 ->where('user_id', Auth::id())
                 ->first();
             $tripScheduleData['ownProperty'] = $own;
+            $tripScheduleData['available_seat'] = $available_seat;
         }
-
 
         if ($planTime === 'dynamic') {
             return $this->handleDynamicPlanTime($tripScheduleData, $days, $toTimes);
@@ -88,7 +97,6 @@ class TripScheduleController extends BaseController
 
         return $dynamicData;
     }
-
 
 
     public function updateTrip(Request $request, $id): \Illuminate\Http\JsonResponse
@@ -135,6 +143,16 @@ class TripScheduleController extends BaseController
         return $this->sendResponse($tripSchedule, 'Trip details retrieved successfully');
     }
 
+
+    public function acceptScheduleTrip(Request $request, $scheduleTripId)
+    {
+        $tripScheduleData = $this->tripScheduleService->acceptScheduleTrip($request, $scheduleTripId);
+
+        return response()->json([
+            'message' => 'Schedule trip request sent successfully',
+            'data' => $tripScheduleData
+        ]);
+    }
 
     public function getAllScheduledJourney(Request $request): \Illuminate\Http\JsonResponse
     {

@@ -3,7 +3,10 @@
 namespace App\Services;
 
 use App\Models\TripSchedule;
+use App\Models\User;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 
 
 /**
@@ -58,5 +61,42 @@ class TripSchedules
         $schedule->save();
 
         return "Schedule status updated successfully.";
+    }
+
+
+    public function acceptScheduleTrip(Request $request, $scheduleTripId)
+    {
+        $tripSchedule = TripSchedule::findOrFail($scheduleTripId);
+
+        if ($tripSchedule->allowUserMeetingPoint) {
+            $tripScheduleData['meeting_point'] = $request->meeting_point;
+        } else {
+            $tripScheduleData['meeting_point'] = $tripSchedule->pickUp;
+        }
+
+        $tripScheduleData['schedule_journey_status'] = "waiting";
+        $tripScheduleData['destination'] = $request->destination;
+        $tripScheduleData['sourceLatitude'] = $request->sourceLatitude;
+        $tripScheduleData['sourceLongitude'] = $request->sourceLongitude;
+        $tripScheduleData['destLatitude'] = $request->destLatitude;
+        $tripScheduleData['destLongitude'] = $request->destLongitude;
+        $tripScheduleData['schedule_trip_id'] = $scheduleTripId;
+
+        if ($tripSchedule->usertype == 'driver') {
+            $tripScheduleData['driver_id'] = Auth::id();
+        } elseif ($tripSchedule->usertype == 'passenger') {
+            $tripScheduleData['passenger_id'] = Auth::id();
+        }
+
+        // Save the trip schedule data
+        $tripScheduleRequest =  TripScheduleActive::create($tripScheduleData);
+        // Send email notification
+        $user = User::find($tripSchedule->user_id);
+        Mail::send('emails.trip-schedule', ['tripSchedule' => $tripScheduleRequest], function ($message) use ($user) {
+            $message->to($user->email)
+                ->subject('Schedule Trip Request');
+        });
+
+        return $tripScheduleData;
     }
 }

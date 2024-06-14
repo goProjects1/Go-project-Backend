@@ -18,6 +18,8 @@ class AddPropertyToTripSchedulesTable extends Migration
             $table->foreignId('ownProperty')->nullable();
             $table->string('destLatitude')->nullable();
             $table->string('destLongitude')->nullable();
+            $table->boolean('allowUserMeetingPoint')->nullable();
+            $table->string('available_seat')->nullable();
         });
     }
 
