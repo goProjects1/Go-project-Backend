@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\TripSchedule;
+use App\Models\TripScheduleActive;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
@@ -64,7 +65,7 @@ class TripSchedules
     }
 
 
-    public function acceptScheduleTrip(Request $request, $scheduleTripId)
+    public function acceptScheduleTrip(Request $request, $scheduleTripId): \Illuminate\Http\JsonResponse
     {
         $tripSchedule = TripSchedule::findOrFail($scheduleTripId);
 
@@ -89,14 +90,23 @@ class TripSchedules
         }
 
         // Save the trip schedule data
-        $tripScheduleRequest =  TripScheduleActive::create($tripScheduleData);
+        $tripScheduleRequest = TripScheduleActive::create($tripScheduleData);
+
+        // Update the available seats
+        if($tripSchedule->available_seat != null)
+        {
+        $tripSchedule->available_seat -= 1;
+        $tripSchedule->save();
+        }
+
         // Send email notification
         $user = User::find($tripSchedule->user_id);
-        Mail::send('emails.trip-schedule', ['tripSchedule' => $tripScheduleRequest], function ($message) use ($user) {
+        Mail::send('emails.trip-schedule', ['tripSchedule' => $tripScheduleRequest, 'user' => $user], function ($message) use ($user) {
             $message->to($user->email)
                 ->subject('Schedule Trip Request');
         });
 
-        return $tripScheduleData;
+        return $tripScheduleRequest;
     }
+
 }
