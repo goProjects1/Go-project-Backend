@@ -28,6 +28,11 @@ class TripSchedule extends Model
         'usertype',
         'schedule_status',
         'latitude',
-        'longitude'
+        'longitude',
+        'destLatitude',
+        'destLongitude',
+        'ownProperty',
+        'available_seat'
+
     ];
 }
