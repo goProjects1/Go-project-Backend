@@ -144,15 +144,11 @@ class TripScheduleController extends BaseController
     }
 
 
-    public function acceptScheduleTrip(Request $request, $scheduleTripId)
+    public function acceptScheduleTrip(Request $request, $scheduleTripId): \Illuminate\Http\JsonResponse
     {
         $tripScheduleData = $this->tripScheduleService->acceptScheduleTrip($request, $scheduleTripId);
-
-        return response()->json([
-            'message' => 'Schedule trip request sent successfully',
-            'data' => $tripScheduleData
-        ]);
-    }
+        return $this->sendResponse($tripScheduleData,'Schedule trip request accepted');
+            }
 
     public function getAllScheduledJourney(Request $request): \Illuminate\Http\JsonResponse
     {

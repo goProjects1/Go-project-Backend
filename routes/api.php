@@ -105,6 +105,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::get('/get-scheduleTrip-by-id/{id}', [TripScheduleController::class, 'getTripById']);
     Route::get('/get-all-scheduleTrip-perUser', [TripScheduleController::class, 'getTrip']);
     Route::post('/update-scheduleTrip/{id}', [TripScheduleController::class, 'updateTrip']);
+    Route::post('/accept-schedule-trip/{scheduleTripId}', [TripScheduleController::class, 'acceptScheduleTrip']);
     Route::delete('/delete-scheduleTrip/{id}', [TripScheduleController::class, 'deleteTrip']);
     Route::post('/feedback', [FeedbackController::class, 'store']);
     Route::post('/feedback/{id}/reply', [FeedbackController::class, 'reply']);
