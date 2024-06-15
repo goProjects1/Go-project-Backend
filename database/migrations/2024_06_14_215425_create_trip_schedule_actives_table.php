@@ -23,8 +23,7 @@ class CreateTripScheduleActivesTable extends Migration
             $table->string('destination')->nullable();
             $table->string('meeting_point')->nullable();
             $table->string('sourceLatitude')->nullable();
-            $table->string('sourceLatitude')->nullable();
-            $table->enum('schedule_journey_status', array('going','waiting','stopping'))->nullable();
+            $table->string('sourceLongitude')->nullable();
             $table->enum('schedule_journey_status', array('going','waiting','stopping'))->nullable();
             $table->timestamps();
         });

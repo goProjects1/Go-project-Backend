@@ -27,11 +27,9 @@ class PaymentController extends Controller
             return response()->json(['error' => 'Trip not found'], 404);
         }
 
-       $emails = $request->email;
-
-        if ($emails) {
+        if ($payment) {
             try {
-                $this->paymentService->inviteUserToPayment($payment, $emails, $request);
+                $this->paymentService->inviteUserToPayment($payment, $request);
                 return response()->json(['message' => 'Payment links sent successfully']);
             } catch (\Exception $e) {
                 return response()->json(['error' => $e->getMessage()], 500);

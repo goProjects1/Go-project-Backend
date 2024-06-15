@@ -24,6 +24,18 @@ class Payment extends Model
         'split_method_id',
         'amount',
         'reason',
-        'description'
+        'description',
+        'transactionDate',
+        'merchantReference',
+        'fiName',
+        'paymentMethod',
+        'linkExpireDateTime',
+        'payThruReference',
+        'paymentReference',
+        'responseCode',
+        'responseDescription',
+        'commission',
+        'residualAmount',
+        'resultCode',
     ];
 }
