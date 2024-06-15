@@ -7,6 +7,7 @@ use App\Models\Trip;
 use App\Models\User;
 use http\Env\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Stripe\Checkout\Session;
@@ -30,16 +31,17 @@ class PaymentService
     /**
      * @throws ApiErrorException
      */
-    public function inviteUserToPayment(Trip $payment, $emails, $request): bool
+    public function inviteUserToPayment($payment, $request): bool
     {
         $paymentChannel = $request->paymentChannel;
+        $emails = $request->email;
         $emailsArray = explode(',', $emails);
         $emailCount = count($emailsArray);
 
         if ($paymentChannel === 'stripe') {
-            return $this->processStripePayments($payment, $emailsArray, $request, $emailCount);
+            return $this->processStripePayments($emailsArray, $request, $emailCount, $payment);
         } elseif ($paymentChannel === 'payThru') {
-            return $this->processPayThruPayments($payment, $emailsArray, $request, $emailCount);
+            return $this->processPayThruPayments($emailsArray, $request, $emailCount, $payment);
         }
 
         return true;
@@ -92,9 +94,10 @@ class PaymentService
         return true;
     }
 
-    private function processPayThruPayments($payment, $emailsArray, $request, $emailCount): bool
+    private function processPayThruPayments($payment, $emailsArray, $request, $emailCount): \Illuminate\Http\JsonResponse
     {
-        $payable = $this->calculatePayableAmount($payment, $request, $emailsArray[0], $emailCount, 0);
+
+        $payable = $this->calculatePayableAmount($payment, $request, $emailsArray, $emailCount);
         $token = $this->getPaythruToken();
         if (!$token) {
             return false;
@@ -102,7 +105,7 @@ class PaymentService
 
         $payers = [];
         foreach ($emailsArray as $key => $email) {
-            $payable = $this->calculatePayableAmount($payment, $request, $email, $emailCount, $key);
+            $payable = $this->calculatePayableAmount($payment, $request, $emailsArray, $emailCount);
             $passenger = User::where('email', $email)->first();
             $name = $passenger ? $passenger->first_name : null;
 
@@ -164,7 +167,7 @@ class PaymentService
                 $authUser = Auth::user();
                 $userName = $user ? $user->first_name : null;
 
-                Mail::to($split['receipient'], $authUser->name, $userName)
+                Mail::to($split['recipient'])
                     ->send(new SendUserInviteMail($split, $authUser, $userName));
 
                 $paylink = $split['paylink'];
@@ -181,8 +184,8 @@ class PaymentService
             $authUser = Auth::user();
             $userName = $user ? $user->first_name : null;
 
-            Mail::to($recipient, $authUser->name, $userName)
-                ->send(new SendUserInviteMail(['paylink' => $paylink, 'amount' => $data['amount'], 'receipient' => $recipient], $authUser, $userName));
+            Mail::to($recipient)
+                ->send(new SendUserInviteMail(['paylink' => $paylink, 'amount' => $data['amount'], 'recipient' => $recipient], $authUser, $userName));
 
             if ($paylink) {
                 $reference = last(explode('/', $paylink));
@@ -193,6 +196,7 @@ class PaymentService
 
         return true;
     }
+
 
     private function getPaythruToken()
     {
@@ -209,10 +213,10 @@ class PaymentService
         return $token;
     }
 
-    private function calculatePayableAmount($payment, $request, $email, $count, $key)
+    private function calculatePayableAmount($payment, $request, $email, $emailCount, $key)
     {
         $payable = 0;
-        $amount = $request->amount;
+        $amount = $payment->amount;
 
         switch ($request->split_method_id) {
             case 1:
@@ -227,9 +231,9 @@ class PaymentService
                 }
                 break;
             case 3:
-                $payable = round($amount / $count, 3);
-                if ($key == $count - 1) {
-                    $payable = round($amount - ($payable * ($count - 1)), 2);
+                $payable = round($amount / $emailCount, 3);
+                if ($key == $emailCount - 1) {
+                    $payable = round($amount - ($payable * ($emailCount - 1)), 2);
                 }
                 break;
         }
