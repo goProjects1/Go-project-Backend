@@ -67,46 +67,54 @@ class TripSchedules
 
     public function acceptScheduleTrip(Request $request, $scheduleTripId): \Illuminate\Http\JsonResponse
     {
+        // Find the trip schedule by ID or fail
         $tripSchedule = TripSchedule::findOrFail($scheduleTripId);
 
+        // Initialize trip schedule data array
+        $tripScheduleData = [];
+
+        // Determine the meeting point based on the trip schedule's allowUserMeetingPoint property
         if ($tripSchedule->allowUserMeetingPoint) {
-            $tripScheduleData['meeting_point'] = $request->meeting_point;
+            $tripScheduleData['meeting_point'] = $request->input('meeting_point');
         } else {
             $tripScheduleData['meeting_point'] = $tripSchedule->pickUp;
         }
 
+        // Set the trip schedule data properties
         $tripScheduleData['schedule_journey_status'] = "waiting";
-        $tripScheduleData['destination'] = $request->destination;
-        $tripScheduleData['sourceLatitude'] = $request->sourceLatitude;
-        $tripScheduleData['sourceLongitude'] = $request->sourceLongitude;
-        $tripScheduleData['destLatitude'] = $request->destLatitude;
-        $tripScheduleData['destLongitude'] = $request->destLongitude;
+        $tripScheduleData['destination'] = $request->input('destination');
+        $tripScheduleData['sourceLatitude'] = $request->input('sourceLatitude');
+        $tripScheduleData['sourceLongitude'] = $request->input('sourceLongitude');
+        $tripScheduleData['destLatitude'] = $request->input('destLatitude');
+        $tripScheduleData['destLongitude'] = $request->input('destLongitude');
         $tripScheduleData['schedule_trip_id'] = $scheduleTripId;
 
+        // Set the user type specific ID (driver or passenger)
         if ($tripSchedule->usertype == 'driver') {
             $tripScheduleData['driver_id'] = Auth::id();
         } elseif ($tripSchedule->usertype == 'passenger') {
             $tripScheduleData['passenger_id'] = Auth::id();
         }
 
-        // Save the trip schedule data
+        // Create a new TripScheduleActive record
         $tripScheduleRequest = TripScheduleActive::create($tripScheduleData);
 
         // Update the available seats
-        if($tripSchedule->available_seat != null)
-        {
-        $tripSchedule->available_seat -= 1;
-        $tripSchedule->save();
+        if ($tripSchedule->available_seat !== null) {
+            $tripSchedule->available_seat -= 1;
+            $tripSchedule->save();
         }
 
         // Send email notification
         $user = User::find($tripSchedule->user_id);
-        Mail::send('emails.trip-schedule', ['tripSchedule' => $tripScheduleRequest, 'user' => $user], function ($message) use ($user) {
+        Mail::send('Email.trip_schedule', ['tripSchedule' => $tripScheduleRequest, 'user' => $user], function ($message) use ($user) {
             $message->to($user->email)
                 ->subject('Schedule Trip Request');
         });
 
-        return $tripScheduleRequest;
+        // Return the trip schedule request as a JSON response
+        return response()->json($tripScheduleRequest);
     }
+
 
 }

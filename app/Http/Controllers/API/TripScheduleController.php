@@ -44,6 +44,7 @@ class TripScheduleController extends BaseController
         $days = (array)$request->input('day');
         $toTimes = (array)$request->input('to_time');
         $allowUserMeetingPoint = $request->allowUserMeetingPoint;
+     //   echo $allowUserMeetingPoint;
         if ($allowUserMeetingPoint) {
             $tripScheduleData['allowUserMeetingPoint'] = true;
         } else {
@@ -147,8 +148,10 @@ class TripScheduleController extends BaseController
     public function acceptScheduleTrip(Request $request, $scheduleTripId): \Illuminate\Http\JsonResponse
     {
         $tripScheduleData = $this->tripScheduleService->acceptScheduleTrip($request, $scheduleTripId);
-        return $this->sendResponse($tripScheduleData,'Schedule trip request accepted');
-            }
+
+        return $this->sendResponse($tripScheduleData, 'Schedule trip request accepted');
+    }
+
 
     public function getAllScheduledJourney(Request $request): \Illuminate\Http\JsonResponse
     {
