@@ -70,6 +70,11 @@ class TripSchedules
         // Find the trip schedule by ID or fail
         $tripSchedule = TripSchedule::findOrFail($scheduleTripId);
 
+        // Check if available seats are present and if they are fully booked
+        if ($tripSchedule->available_seat !== null && $tripSchedule->available_seat <= 0) {
+            return response()->json(['message' => 'Available seats are complete'], 400);
+        }
+
         // Initialize trip schedule data array
         $tripScheduleData = [];
 
@@ -115,6 +120,7 @@ class TripSchedules
         // Return the trip schedule request as a JSON response
         return response()->json($tripScheduleRequest);
     }
+
 
 
 }
