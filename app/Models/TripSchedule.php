@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
  * @method static create($data)
  * @method static findOrFail($id)
  * @method static where(string $string, mixed $getAuthIdentifier)
+ * @method static find($scheduleId)
  */
 class TripSchedule extends Model
 {
@@ -32,7 +33,8 @@ class TripSchedule extends Model
         'destLatitude',
         'destLongitude',
         'ownProperty',
-        'available_seat'
+        'available_seat',
+        'allowUserMeetingPoint'
 
     ];
 }
