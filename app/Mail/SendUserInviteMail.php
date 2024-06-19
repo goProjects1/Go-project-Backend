@@ -33,6 +33,6 @@ class SendUserInviteMail extends Mailable
      */
     public function build()
     {
-        return $this->subject("User Invite and Paymentlink")->view('Email.userInvite')->with(['authmail' => $this->authmail, 'uxer' => $this->uxer]);
+        return $this->subject("User Invite and Paymentlink")->view('Email.inviteUser')->with(['authmail' => $this->authmail, 'uxer' => $this->uxer]);
     }
 }
