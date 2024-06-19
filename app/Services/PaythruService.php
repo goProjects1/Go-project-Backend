@@ -23,14 +23,6 @@ class PaythruService
         $PayThru_AppId = env('PayThru_ApplicationId');
         $AuthUrl = env('Paythru_Auth_Url');
 
-        // Check if a token exists and is not expired
-//    $tokenRecord = Tokenn::first();
-
-
-        //  if ($tokenRecord && $tokenRecord->expiration_date > now()) {
-        //     return Crypt::decrypt($tokenRecord->token);
-        // }
-
         $response = Http::retry($maxRetry, 100)->withHeaders([
             'Content-Type' => 'application/json',
             'Timestamp' => $timestamp,
@@ -43,12 +35,6 @@ class PaythruService
             $access = $response->object()->data;
             $paythru = "Paythru";
             $token = $paythru . " " . $access;
-
-            // Store the token and its expiration date in the database
-            //   Tokenn::updateOrCreate([], [
-            //     'token' => Crypt::encrypt($token),
-            //   'expiration_date' => now()->addDays(5),
-            // ]);
 
             return $token;
         }
