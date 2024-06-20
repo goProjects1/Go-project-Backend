@@ -118,8 +118,10 @@ class TripScheduleController extends BaseController
 
         $tripSchedule = TripSchedule::findOrFail($id);
         $tripSchedule['user_id'] = Auth::user()->getAuthIdentifier();
-        $tripSchedule->update($validatedData);
-        return $this->sendResponse($tripSchedule, 'Trip updated successfully');
+
+        $update  =  $tripSchedule->update($validatedData);
+        return $this->sendResponse($update, 'Trips updated successfully');
+
     }
 
     public function deleteTrip($id): \Illuminate\Http\JsonResponse
@@ -185,8 +187,8 @@ class TripScheduleController extends BaseController
     {
 
         $newStatus = $request->new_status;
-
-        return $this->tripScheduleService->updateScheduleStatus($scheduleId, $newStatus);
+        $update  =  $this->tripScheduleService->updateScheduleStatus($scheduleId, $newStatus);
+        return $this->sendResponse($update, 'Trips schedule updated successfully');
     }
 
 }
