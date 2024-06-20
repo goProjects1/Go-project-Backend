@@ -20,7 +20,7 @@ class TripService
         //$trip->save();
         // Log users within distance
         $this->logUsersWithinDistance($trip);
-
+// I logged
         // Send trip notifications to users within distance
         $this->sendTripNotifications($trip);
     }
