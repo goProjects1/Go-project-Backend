@@ -160,7 +160,7 @@ class TripController extends BaseController
         return response()->json(['trip' => $trip], 200);
     }
 
-    public function updateTripStatus(Request $request, $tripId): string
+    public function updateTripStatus(Request $request, $tripId): \Illuminate\Http\JsonResponse
     {
         $newStatus = $request->new_status;
         $lat = $request->input('latitude');
@@ -170,7 +170,7 @@ class TripController extends BaseController
     }
 
 
-    public function updateTripStatusForPassengers(Request $request, $tripId): string
+    public function updateTripStatusForPassengers(Request $request, $tripId): \Illuminate\Http\JsonResponse
     {
         // Extract new status from the request
         $newStatus = $request->input('journey_status');
