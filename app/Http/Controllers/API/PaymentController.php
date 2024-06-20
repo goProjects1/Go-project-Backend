@@ -21,6 +21,7 @@ class PaymentController extends Controller
     public function inviteUserToTripPayment(Request $request, $tripId)
     {
 
+       // return $payment = Trip::findOrFail($tripId);
         try {
             $payment = Trip::findOrFail($tripId);
         } catch (\Exception $e) {

@@ -165,8 +165,8 @@ class TripController extends BaseController
         $newStatus = $request->new_status;
         $lat = $request->input('latitude');
         $long = $request->input('longitude');
-
-        return $this->tripService->updateTripStatus($tripId, $newStatus, $lat, $long);
+        $update  =  $this->tripService->updateTripStatus($tripId, $newStatus, $lat, $long);
+        return $this->sendResponse($update, 'Trips status updated successfully');
     }
 
 
@@ -177,7 +177,8 @@ class TripController extends BaseController
         $lat = $request->input('latitude');
         $long = $request->input('longitude');
         // Call the trip service to update trip status for passengers
-        return $this->tripService->updateTripStatusForPassanger($tripId, $newStatus,$lat, $long);
+        $update  = $this->tripService->updateTripStatusForPassanger($tripId, $newStatus,$lat, $long);
+        return $this->sendResponse($update, 'Trips status updated successfully');
     }
 
 }
