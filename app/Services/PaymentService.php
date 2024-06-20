@@ -39,12 +39,12 @@ class PaymentService
         $emailCount = count($emailsArray);
 
         if ($paymentChannel === 'stripe') {
-            return $this->processStripePayments($emailsArray, $request, $emailCount, $payment);
+            return $this->processStripePayments($payment, $emailsArray, $request, $emailCount);
         } elseif ($paymentChannel === 'payThru') {
-            return $this->processPayThruPayments($emailsArray, $request, $emailCount, $payment);
+            return $this->processPayThruPayments($payment, $emailsArray, $request, $emailCount);
         }
 
-        return true;
+        return response()->json(['message' => 'Payment channel not supported'], 400);
     }
 
     private function processStripePayments($payment, $emailsArray, $request, $emailCount): bool
@@ -96,22 +96,20 @@ class PaymentService
 
     private function processPayThruPayments($payment, $emailsArray, $request, $emailCount): \Illuminate\Http\JsonResponse
     {
-
-        $payable = $this->calculatePayableAmount($payment, $request, $emailsArray, $emailCount);
         $token = $this->getPaythruToken();
         if (!$token) {
-            return false;
+            return response()->json(['message' => 'Failed to retrieve PayThru token'], 500);
         }
 
         $payers = [];
         foreach ($emailsArray as $key => $email) {
-            $payable = $this->calculatePayableAmount($payment, $request, $emailsArray, $emailCount);
-            $passenger = User::where('email', $email)->first();
-            $name = $passenger ? $passenger->first_name : null;
+            $payable = $this->calculatePayableAmount($payment, $request, $email, $emailCount, $key);
+           // $passenger = User::where('email', $email)->first();
+           // $name = $passenger ? $passenger->first_name : null;
 
             Payment::create([
                 'user_id' => Auth::user()->id,
-                'passenger_id' => $passenger ? $passenger->id : null,
+              //  'passenger_id' => $email->id ?  $email->id : null,
                 'trip_id' => $payment->id,
                 'email' => $email,
                 'split_method_id' => $request->split_method_id,
@@ -124,16 +122,16 @@ class PaymentService
                 'account_number' => $request->account_number,
             ]);
 
-            $payers[] = ["payerEmail" => $email, "paymentAmount" => $payable, "payerName" => $name];
+            $payers[] = ["payerEmail" => $email, "paymentAmount" => $payable];
         }
 
         $data = [
-            'amount' => $payment->amount,
+            'amount' => $payment->amount, // Ensure $payment is an object with an amount property
             'productId' => env('PayThru_expense_productid'),
             'transactionReference' => time() . $payment->id,
             'paymentDescription' => $request->description,
             'paymentType' => 1,
-            'sign' => hash('sha512', $payable . env('PayThru_App_Secret')),
+            'sign' => hash('sha512', $payment->amount . env('PayThru_App_Secret')),
             'displaySummary' => true,
         ];
 
@@ -147,7 +145,7 @@ class PaymentService
         ])->post(env('PayThru_Base_Live_Url') . '/transaction/create', $data);
 
         if ($response->failed()) {
-            return false;
+            return response()->json(['message' => 'Failed to create PayThru transaction'], 500);
         }
 
         return $this->handlePayThruResponse($response, $payment, $request, $data);
@@ -194,16 +192,15 @@ class PaymentService
             }
         }
 
-        return true;
+        return response()->json(['message' => 'Payment processed successfully'], 200);
     }
-
 
     private function getPaythruToken()
     {
         $token = $this->paythruService->handle();
 
         if (!$token) {
-            return "Token retrieval failed";
+            return false;
         }
 
         if (is_string($token) && strpos($token, '403') !== false) {
@@ -216,7 +213,7 @@ class PaymentService
     private function calculatePayableAmount($payment, $request, $email, $emailCount, $key)
     {
         $payable = 0;
-        $amount = $payment->amount;
+        $amount = $payment->amount; // Ensure $payment is an object with an amount property
 
         switch ($request->split_method_id) {
             case 1:

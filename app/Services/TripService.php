@@ -17,6 +17,7 @@ class TripService
 {
     public function notifyUsersAndSaveTrip(Trip $trip): void
     {
+        $trip->save();
         // Log users within distance
         $this->logUsersWithinDistance($trip);
 
