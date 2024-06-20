@@ -61,7 +61,7 @@ class TripSchedules
         $schedule->schedule_status = $newStatus;
         $schedule->save();
 
-        return "Schedule status updated successfully.";
+        return $schedule;
     }
 
 

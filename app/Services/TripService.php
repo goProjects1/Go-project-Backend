@@ -207,7 +207,7 @@ class TripService
         return null;
     }
 
-    public function updateTripStatus($tripId, $newStatus, $lat, $long): string
+    public function updateTripStatus($tripId, $newStatus, $lat, $long)
     {
         // Get the authenticated user
         $user = Auth::user();
@@ -241,10 +241,10 @@ class TripService
         $schedule->journey_status = $newStatus;
         $schedule->save();
 
-        return "Trip status updated successfully.";
+        return $schedule;
     }
 
-    public function updateTripStatusForPassanger($tripId, $newStatus,$lat, $long): string
+    public function updateTripStatusForPassanger($tripId, $newStatus,$lat, $long)
     {
         // Get the authenticated user
         $user = Auth::user();
@@ -278,7 +278,7 @@ class TripService
         $schedule->journey_status = $newStatus;
         $schedule->save();
 
-        return "Trip status updated successfully.";
+        return $schedule;
     }
 
 }
