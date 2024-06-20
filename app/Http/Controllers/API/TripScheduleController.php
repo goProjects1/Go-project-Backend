@@ -183,7 +183,7 @@ class TripScheduleController extends BaseController
 
 
 
-    public function updateScheduleStatus(Request $request, $scheduleId)
+    public function updateScheduleStatus(Request $request, $scheduleId): \Illuminate\Http\JsonResponse
     {
 
         $newStatus = $request->new_status;
