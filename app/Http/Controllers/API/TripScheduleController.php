@@ -183,7 +183,7 @@ class TripScheduleController extends BaseController
 
 
 
-    public function updateScheduleStatus(Request $request, $scheduleId): string
+    public function updateScheduleStatus(Request $request, $scheduleId)
     {
 
         $newStatus = $request->new_status;
