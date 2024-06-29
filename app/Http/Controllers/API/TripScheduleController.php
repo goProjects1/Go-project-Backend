@@ -134,10 +134,13 @@ class TripScheduleController extends BaseController
 
     public function getTrip(): \Illuminate\Http\JsonResponse
     {
-        $tripSchedule = TripSchedule::where('user_id', Auth::user()->id)->paginate(10);
+        $tripSchedule = TripSchedule::where('user_id', Auth::user()->id)
+            ->orderBy('created_at', 'asc')
+            ->paginate(10);
 
         return $this->sendResponse($tripSchedule, 'Trip details retrieved successfully');
     }
+
 
     public function getTripById($id): \Illuminate\Http\JsonResponse
     {
