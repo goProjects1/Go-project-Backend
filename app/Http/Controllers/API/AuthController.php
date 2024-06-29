@@ -55,7 +55,7 @@ class AuthController extends BaseController
         if ($result['success']) {
             Log::info($result['message']);
         } else {
-            Log::error($result['error']);
+            Log::error($result['message']);
         }
 
         $input = $request->all();
@@ -64,9 +64,9 @@ class AuthController extends BaseController
         $user = User::create($input);
         $success = $user;
 
-
         return $this->sendResponse($success, 'User created successfully.');
     }
+
 
 
     //login function
