@@ -40,6 +40,7 @@ class AuthController extends BaseController
         $validator = Validator::make($request->all(), [
             'email' => 'required|email|unique:users',
             'phone_number' => 'string|unique:users|required',
+            'usertype' => 'string|required',
             'password' => 'required|confirmed|min:8|regex:/^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{6,}$/',
             'password_confirmation' => 'required|same:password',
         ]);
@@ -398,7 +399,44 @@ class AuthController extends BaseController
 
                 }
 
+    public function updateUsertype(Request $request): JsonResponse
+    {
+        $id = Auth::user();
+        $user = User::where('id', $id->id)->firstOrFail();
+
+        // Validate the request, ensuring usertype is not admin
+        $this->validate($request, [
+            'usertype' => ['required', 'string', Rule::notIn(['admin'])],
+        ]);
+
+        // Check if the current user type is admin, and prevent the update
+        if ($user->usertype === 'admin') {
+            return response()->json(['error' => 'You cannot update the usertype to admin.'], 403);
         }
+
+        // Update the usertype
+        $user->usertype = $request->usertype;
+        $user->saveOrFail();
+
+        return response()->json(['success' => true, $user]);
+    }
+
+    public function updateUsersWithoutProperty(): JsonResponse
+    {
+        // Find all users who do not have any property in the property table
+        $usersWithoutProperty = User::doesntHave('properties')->get();
+
+        // Update the usertype to 'passenger'
+        foreach ($usersWithoutProperty as $user) {
+            $user->usertype = 'passenger';
+            $user->save();
+        }
+
+        return response()->json(['message' => 'Users updated successfully'], 200);
+    }
+
+
+}
 
 
 
