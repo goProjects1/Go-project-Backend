@@ -181,4 +181,10 @@ class TripController extends BaseController
         return $this->sendResponse($update, 'Trips status updated successfully');
     }
 
+    public function getTripsWithSchedules(): \Illuminate\Http\JsonResponse
+    {
+        $trips = $this->tripService->getTripsWithSchedules();
+        return response()->json($trips);
+    }
+
 }
