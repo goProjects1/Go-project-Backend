@@ -284,24 +284,19 @@ class TripService
 
     public function getTripsWithSchedules(): \Illuminate\Support\Collection
     {
-        // Using the Query Builder to join tables and include all columns from both tables
-        $trips = DB::table('trips')
-            ->join('trip_schedules', 'trips.id', '=', 'trip_schedules.trip_id')
-            ->select(
-                'trips.*',
-                'trip_schedules.id as schedule_id', 'trip_schedules.pickUp as schedule_pickUp',
-                'trip_schedules.destination as schedule_destination', 'trip_schedules.variable_distance as schedule_variable_distance',
-                'trip_schedules.description as schedule_description', 'trip_schedules.to_time', 'trip_schedules.frequency',
-                'trip_schedules.user_id', 'trip_schedules.plan_time', 'trip_schedules.amount', 'trip_schedules.pay_option',
-                'trip_schedules.usertype as schedule_usertype', 'trip_schedules.schedule_status', 'trip_schedules.latitude as schedule_latitude',
-                'trip_schedules.longitude as schedule_longitude', 'trip_schedules.destLatitude as schedule_destLatitude',
-                'trip_schedules.destLongitude as schedule_destLongitude', 'trip_schedules.ownProperty', 'trip_schedules.available_seat as schedule_available_seat',
-                'trip_schedules.allowUserMeetingPoint'
-            )
-            ->get();
+        // Retrieve all data from the trips table
+        $trips = DB::table('trips')->get();
 
-        return $trips;
+        // Retrieve all data from the trip_schedules table
+        $tripSchedules = DB::table('trip_schedules')->get();
+
+        // Merge the collections to combine data from both tables
+        $combinedData = $trips->merge($tripSchedules);
+
+        return $combinedData;
     }
+
+
 
 
 }
