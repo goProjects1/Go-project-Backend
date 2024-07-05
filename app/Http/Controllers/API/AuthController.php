@@ -425,10 +425,17 @@ class AuthController extends BaseController
     {
         // Find all users who do not have any property in the property table
         $usersWithoutProperty = User::doesntHave('properties')->get();
-
         // Update the usertype to 'passenger'
         foreach ($usersWithoutProperty as $user) {
             $user->usertype = 'passenger';
+            $user->save();
+        }
+
+        // Find all users who have property in the property table
+        $usersWithProperty = User::has('properties')->get();
+        // Update the usertype to 'driver'
+        foreach ($usersWithProperty as $user) {
+            $user->usertype = 'driver';
             $user->save();
         }
 
