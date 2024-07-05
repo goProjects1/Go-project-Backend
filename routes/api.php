@@ -34,6 +34,7 @@ Route::post('/reset', [ForgetpasswordController::class, 'reset']);
 Route::post('/admin/register', [AdminController::class, 'adminRegister']);
 //Get all Schedule Trips
 Route::get('/get-scheduleTrip', [TripScheduleController::class, 'getAllScheduledJourney']);
+Route::get('/trips-with-schedules', [TripController::class, 'getTripsWithSchedules']);
 
 //Route::middleware(['auth:sanctum', 'admin'])->group(function () {
 
@@ -75,6 +76,8 @@ Route::middleware(['auth:sanctum'])->group(function () {
 
     Route::get('/ops', [AuthController::class, 'geocodeAddress']);
     Route::put('/handleFileUpload/{userId}', [AuthController::class, 'handleFileUpload']);
+    Route::put('/updateUsertype', [AuthController::class, 'updateUsertype']);
+    Route::put('/update-users', [AuthController::class, 'updateUsersWithoutProperty']);
     Route::resource('property', PropertyController::class);
     Route::get('/getUserProperty',[PropertyController::class, 'getUserProperty']);
     Route::delete('property/{propertyId}', [PropertyController::class, 'destroy']);

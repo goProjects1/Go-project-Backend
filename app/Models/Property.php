@@ -20,4 +20,10 @@ class Property extends Model
         'user_id',
         'model'
     ];
+
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }
