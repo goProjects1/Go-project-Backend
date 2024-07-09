@@ -21,6 +21,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Validation\ValidationException;
 use Grimzy\LaravelMysqlSpatial\Types\Point;
+use Illuminate\Validation\Rule;
 
 
 
