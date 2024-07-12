@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Property;
 use App\Models\TripSchedule;
 use App\Services\TripSchedules;
+use Illuminate\Auth\AuthenticationException;
 use Illuminate\Http\Request;
 use App\Http\Controllers\API\BaseController as BaseController;
 use Illuminate\Support\Facades\Auth;
@@ -193,5 +194,18 @@ class TripScheduleController extends BaseController
         $update  =  $this->tripScheduleService->updateScheduleStatus($scheduleId, $newStatus);
         return $this->sendResponse($update, 'Trips schedule updated successfully');
     }
+
+    public function getScheduleActiveTripPerDriver(Request $request): \Illuminate\Http\JsonResponse
+    {
+        try {
+            $tripDetails = $this->tripScheduleService->getScheduleTripPerDriver($request);
+            return $this->sendResponse($tripDetails, 'Trip details retrieved successfully');
+        } catch (AuthenticationException $e) {
+            return response()->json(['error' => $e->getMessage()], 401);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'An unexpected error occurred'], 500);
+        }
+    }
+
 
 }
