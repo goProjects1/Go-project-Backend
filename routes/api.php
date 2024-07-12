@@ -131,6 +131,7 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::post('/make-payment/{tripId}', [PaymentController::class, 'inviteUserToTripPayment']);
     Route::post('/make-payment-via-mpos/{tripId}', [PaymentController::class, 'mPosOneTimePay']);
     Route::get('/get-payment', [PaymentController::class, 'getPayment']);
+    Route::get('/get-scheduleTrip-per-driver', [TripScheduleController::class, 'getScheduleActiveTripPerDriver']);
 
     // Reporting
     Route::get('/get-report', [ReportController::class, 'getTripReport']);

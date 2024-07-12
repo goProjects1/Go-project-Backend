@@ -8,6 +8,7 @@ use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Auth\AuthenticationException;
 
 
 /**
@@ -119,6 +120,24 @@ class TripSchedules
 
         // Return the trip schedule request as a JSON response
         return response()->json($tripScheduleRequest);
+    }
+
+    public function getScheduleTripPerDriver($request)
+    {
+        $tripSchedules = TripSchedule::all();
+
+        // Check if user is authenticated before accessing user ID
+        if (Auth::check()) {
+            $userId = Auth::id();
+
+            return TripScheduleActive::where('driver_id', $userId)
+                ->whereIn('schedule_trip_id', $tripSchedules->pluck('id'))
+                ->where('schedule_journey_status', 'stopping')
+                ->paginate($request->query('per_page', 10));
+        } else {
+            // Throw an AuthenticationException if user is not authenticated
+            throw new AuthenticationException('User is not authenticated.');
+        }
     }
 
 
