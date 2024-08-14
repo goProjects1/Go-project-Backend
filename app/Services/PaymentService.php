@@ -3,11 +3,13 @@
 namespace App\Services;
 
 use App\Models\Payment;
+use App\Models\ReferralSetting;
 use App\Models\Trip;
 use App\Models\User;
 use http\Env\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Stripe\Checkout\Session;
@@ -126,7 +128,7 @@ class PaymentService
         }
 
         $data = [
-            'amount' => $payment->amount, // Ensure $payment is an object with an amount property
+            'amount' => $payment->amount,
             'productId' => env('PayThru_expense_productid'),
             'transactionReference' => time() . $payment->id,
             'paymentDescription' => $request->description,
@@ -256,5 +258,9 @@ class PaymentService
             throw new AuthenticationException('User is not authenticated.');
         }
     }
+
+
+
+
 
 }

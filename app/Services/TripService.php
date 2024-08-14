@@ -16,20 +16,274 @@ use Illuminate\Support\Facades\DB;
 
 class TripService
 {
+//     public function notifyUsersAndSaveTrip(Trip $trip): void
+//     {
+//         //$trip->save();
+//         // Log users within distance
+//         $this->logUsersWithinDistance($trip);
+// // I logged
+//         // Send trip notifications to users within distance
+//         $this->sendTripNotifications($trip);
+//     }
+
+//     private function logUsersWithinDistance(Trip $trip)
+//     {
+//         $usersWithinDistance = $this->getUsersWithinDistance($trip);
+//         // Log users within distance
+//         Log::info('Users within distance for trip ' . $trip->id . ': ' . $usersWithinDistance->toJson());
+//     }
+
+//     private function sendTripNotifications(Trip $trip)
+//     {
+//         $usersWithinDistance = $this->getUsersWithinDistance($trip);
+//         Log::info('Users within distance for trip ' . $trip->id . ': ' . $usersWithinDistance->toJson());
+
+//         $tripCreatorId = $trip->sender_id;
+//         foreach ($usersWithinDistance as $user) {
+//             if ($user->id !== $tripCreatorId) {
+//                 try {
+//                     $newTrip = clone $trip;
+//                     $newTrip->guest_id = $user->id;
+
+//                     // Save the new trip for the user
+//                     $newTrip->save();
+
+//                     // Construct invitation link with the new trip ID
+//                     $inviteLink = 'https://go-project-ashy.vercel.app/account/trip_invite?tripId=' . $newTrip->id;
+
+//                     if (isset($user->email) && is_string($user->email)) {
+//                         // Fetch property details for the trip
+//                         $property = Property::findOrFail($trip->property_id);
+//                         $name = $user->last_name;
+
+//                         // Send trip notification
+//                         Mail::to($user->email)->send(new TripMail($newTrip, $inviteLink, $property->registration_no, $property->model, $property->type, $name));
+//                         Log::info("Invitation sent to {$user->email} for trip {$newTrip->id}");
+//                     }
+//                 } catch (\Exception $e) {
+//                     Log::error("Failed to send invitation to {$user->email} for trip: {$e->getMessage()}");
+//                 }
+//             } else {
+//                 try {
+//                     $inviteLink = 'https://go-project-ashy.vercel.app/account/trip_invite?tripId=' . $trip->id;
+//                     if (isset($user->email) && is_string($user->email)) {
+//                         // Fetch property details for the trip
+//                         $property = Property::findOrFail($trip->property_id);
+//                         $name = $user->last_name;
+//                         $this->saveTripForUser($trip, $user->id);
+
+//                         // Send trip notification
+//                         Mail::to($user->email)->send(new TripMail($trip, $inviteLink, $property->registration_no, $property->model, $property->type, $name));
+//                         Log::info("Invitation sent to {$user->email} for trip {$trip->id}");
+
+//                         // Save the trip for the user
+//                     }
+//                 } catch (\Exception $e) {
+//                     Log::error("Failed to send invitation to {$user->email} for trip {$trip->id}: {$e->getMessage()}");
+//                 }
+//             }
+//         }
+//     }
+
+//     private function saveTripForUser(Trip $trip, $userId)
+//     {
+//         // Find the user by email address
+//         $user = User::where('id', $userId)->first();
+
+//         if ($user) {
+//             $newTrip = clone $trip;
+//             // Set the user ID for the new trip
+//             $newTrip->guest_id = $user->id;
+//             // Save the new trip for the user
+//             $newTrip->save();
+//         } else {
+//             Log::error("User with email {$userId} not found.");
+//         }
+//     }
+
+//     private function getUsersWithinDistance(Trip $trip): \Illuminate\Support\Collection
+//     {
+//         $user = Auth::user();
+
+//         if (!$user || !$user->latitude || !$user->longitude) {
+//             return collect();
+//         }
+
+//         $variableDistance = $trip->variable_distance;
+//         // Query to get users within the specified distance range
+//         $usersWithinDistance = User::selectRaw(
+//             'users.*, ( 3959 * acos( cos( radians(?) ) * cos( radians( latitude ) ) * cos( radians( longitude ) - radians(?) ) + sin( radians(?) ) * sin( radians( latitude ) ) ) ) AS distance',
+//             [$user->latitude, $user->longitude, $user->latitude]
+//         )
+//             ->having('distance', '<=', $variableDistance)
+//             ->get();
+
+//         return $usersWithinDistance;
+//     }
+
+//     public function acceptTrip(Trip $trip): bool
+//     {
+//         $userId = Auth::id();
+
+//         if ($userId) {
+//             $trip->update([
+//                 'trip_status' => 'accepted',
+//                 'available_seat' => $trip->available_seat - 1,
+//                 'guest_id' => $userId,
+//             ]);
+
+//             $this->notifyTripCreator($trip);
+
+//             return true;
+//         } else {
+//             return false;
+//         }
+
+//     }
+
+//     protected function notifyTripCreator(Trip $trip)
+//     {
+//         Mail::to($trip->sender->email)->send(new TripNotification($trip));
+//     }
+
+//     protected function notifyTripCreatorForDecline(Trip $trip)
+//     {
+//         Mail::to($trip->sender->email)->send(new TripDecline($trip));
+//     }
+
+//     public function declineTrip(Trip $trip): bool
+//     {
+//         $userId = Auth::id();
+
+//         if ($userId) {
+//             $trip->update([
+//                 'trip_status' => 'decline',
+//                 'guest_id' => $userId,
+//             ]);
+
+//             $this->notifyTripCreatorForDecline($trip);
+
+//             return true;
+//         } else {
+//             return false;
+//         }
+//     }
+
+
+
+
+
+    // private const INITIAL_DISTANCE = 0.5;
+
+    // public function notifyUsersAndSaveTrip(Trip $trip): void
+    // {
+    //     $trip->variable_distance = self::INITIAL_DISTANCE;
+    //     $this->logUsersWithinDistance($trip);
+    //     $this->sendTripNotifications($trip);
+    // }
+
+    // private function logUsersWithinDistance(Trip $trip)
+    // {
+    //     $usersWithinDistance = $this->getUsersWithinDistance($trip);
+    //     Log::info('Users within distance for trip ' . $trip->id . ': ' . $usersWithinDistance->toJson());
+    // }
+
+    // private function sendTripNotifications(Trip $trip)
+    // {
+    //     $usersWithinDistance = $this->getUsersWithinDistance($trip);
+    //     Log::info('Users within distance for trip ' . $trip->id . ': ' . $usersWithinDistance->toJson());
+
+    //     $tripCreatorId = $trip->sender_id;
+    //     foreach ($usersWithinDistance as $user) {
+    //         if ($user->id !== $tripCreatorId) {
+    //             $this->processUserNotification($trip, $user);
+    //         } else {
+    //             $this->processTripCreatorNotification($trip, $user);
+    //         }
+    //     }
+    // }
+
+    // private function processUserNotification(Trip $trip, User $user)
+    // {
+    //     try {
+    //         $newTrip = clone $trip;
+    //         $newTrip->guest_id = $user->id;
+    //         $newTrip->save();
+
+    //         $inviteLink = 'https://go-project-ashy.vercel.app/account/trip_invite?tripId=' . $newTrip->id;
+    //         if (isset($user->email) && is_string($user->email)) {
+    //             $property = Property::findOrFail($trip->property_id);
+    //             $name = $user->last_name;
+    //             Mail::to($user->email)->send(new TripMail($newTrip, $inviteLink, $property->registration_no, $property->model, $property->type, $name));
+    //             Log::info("Invitation sent to {$user->email} for trip {$newTrip->id}");
+    //         }
+    //     } catch (\Exception $e) {
+    //         Log::error("Failed to send invitation to {$user->email} for trip: {$e->getMessage()}");
+    //     }
+    // }
+
+    // private function processTripCreatorNotification(Trip $trip, User $user)
+    // {
+    //     try {
+    //         $inviteLink = 'https://go-project-ashy.vercel.app/account/trip_invite?tripId=' . $trip->id;
+    //         if (isset($user->email) && is_string($user->email)) {
+    //             $property = Property::findOrFail($trip->property_id);
+    //             $name = $user->last_name;
+    //             $this->saveTripForUser($trip, $user->id);
+    //             Mail::to($user->email)->send(new TripMail($trip, $inviteLink, $property->registration_no, $property->model, $property->type, $name));
+    //             Log::info("Invitation sent to {$user->email} for trip {$trip->id}");
+    //         }
+    //     } catch (\Exception $e) {
+    //         Log::error("Failed to send invitation to {$user->email} for trip {$trip->id}: {$e->getMessage()}");
+    //     }
+    // }
+
+    // private function saveTripForUser(Trip $trip, $userId)
+    // {
+    //     $user = User::find($userId);
+
+    //     if ($user) {
+    //         $newTrip = clone $trip;
+    //         $newTrip->guest_id = $user->id;
+    //         $newTrip->save();
+    //     } else {
+    //         Log::error("User with ID {$userId} not found.");
+    //     }
+    // }
+
+    // private function getUsersWithinDistance(Trip $trip)
+    // {
+    //     $user = Auth::user();
+
+    //     if (!$user || !$user->latitude || !$user->longitude) {
+    //         return collect();
+    //     }
+
+    //     $variableDistance = $trip->variable_distance;
+    //     $usersWithinDistance = User::selectRaw(
+    //         'users.*, ( 3959 * acos( cos( radians(?) ) * cos( radians( latitude ) ) * cos( radians( longitude ) - radians(?) ) + sin( radians(?) ) * sin( radians( latitude ) ) ) ) AS distance',
+    //         [$user->latitude, $user->longitude, $user->latitude]
+    //     )
+    //     ->having('distance', '<=', $variableDistance)
+    //     ->get();
+
+    //     return $usersWithinDistance;
+    // }
+    
+    
+    
+     private const INITIAL_DISTANCE = 0.5;
+
     public function notifyUsersAndSaveTrip(Trip $trip): void
     {
-        //$trip->save();
-        // Log users within distance
+        $trip->variable_distance = self::INITIAL_DISTANCE;
         $this->logUsersWithinDistance($trip);
-// I logged
-        // Send trip notifications to users within distance
         $this->sendTripNotifications($trip);
     }
 
     private function logUsersWithinDistance(Trip $trip)
     {
         $usersWithinDistance = $this->getUsersWithinDistance($trip);
-        // Log users within distance
         Log::info('Users within distance for trip ' . $trip->id . ': ' . $usersWithinDistance->toJson());
     }
 
@@ -41,67 +295,62 @@ class TripService
         $tripCreatorId = $trip->sender_id;
         foreach ($usersWithinDistance as $user) {
             if ($user->id !== $tripCreatorId) {
-                try {
-                    $newTrip = clone $trip;
-                    $newTrip->guest_id = $user->id;
-
-                    // Save the new trip for the user
-                    $newTrip->save();
-
-                    // Construct invitation link with the new trip ID
-                    $inviteLink = 'https://go-project-ashy.vercel.app/account/trip_invite?tripId=' . $newTrip->id;
-
-                    if (isset($user->email) && is_string($user->email)) {
-                        // Fetch property details for the trip
-                        $property = Property::findOrFail($trip->property_id);
-                        $name = $user->last_name;
-
-                        // Send trip notification
-                        Mail::to($user->email)->send(new TripMail($newTrip, $inviteLink, $property->registration_no, $property->model, $property->type, $name));
-                        Log::info("Invitation sent to {$user->email} for trip {$newTrip->id}");
-                    }
-                } catch (\Exception $e) {
-                    Log::error("Failed to send invitation to {$user->email} for trip: {$e->getMessage()}");
-                }
+                $this->processUserNotification($trip, $user);
             } else {
-                try {
-                    $inviteLink = 'https://go-project-ashy.vercel.app/account/trip_invite?tripId=' . $trip->id;
-                    if (isset($user->email) && is_string($user->email)) {
-                        // Fetch property details for the trip
-                        $property = Property::findOrFail($trip->property_id);
-                        $name = $user->last_name;
-                        $this->saveTripForUser($trip, $user->id);
-
-                        // Send trip notification
-                        Mail::to($user->email)->send(new TripMail($trip, $inviteLink, $property->registration_no, $property->model, $property->type, $name));
-                        Log::info("Invitation sent to {$user->email} for trip {$trip->id}");
-
-                        // Save the trip for the user
-                    }
-                } catch (\Exception $e) {
-                    Log::error("Failed to send invitation to {$user->email} for trip {$trip->id}: {$e->getMessage()}");
-                }
+                $this->processTripCreatorNotification($trip, $user);
             }
+        }
+    }
+
+    private function processUserNotification(Trip $trip, User $user)
+    {
+        try {
+            $newTrip = clone $trip;
+            $newTrip->guest_id = $user->id;
+            $newTrip->save();
+
+            $inviteLink = 'https://go-project-ashy.vercel.app/account/trip_invite?tripId=' . $newTrip->id;
+            if (isset($user->email) && is_string($user->email)) {
+                $property = Property::findOrFail($trip->property_id);
+                $name = $user->last_name;
+                Mail::to($user->email)->send(new TripMail($newTrip, $inviteLink, $property->registration_no, $property->model, $property->type, $name));
+                Log::info("Invitation sent to {$user->email} for trip {$newTrip->id}");
+            }
+        } catch (\Exception $e) {
+            Log::error("Failed to send invitation to {$user->email} for trip: {$e->getMessage()}");
+        }
+    }
+
+    private function processTripCreatorNotification(Trip $trip, User $user)
+    {
+        try {
+            $inviteLink = 'https://go-project-ashy.vercel.app/account/trip_invite?tripId=' . $trip->id;
+            if (isset($user->email) && is_string($user->email)) {
+                $property = Property::findOrFail($trip->property_id);
+                $name = $user->last_name;
+                $this->saveTripForUser($trip, $user->id);
+                Mail::to($user->email)->send(new TripMail($trip, $inviteLink, $property->registration_no, $property->model, $property->type, $name));
+                Log::info("Invitation sent to {$user->email} for trip {$trip->id}");
+            }
+        } catch (\Exception $e) {
+            Log::error("Failed to send invitation to {$user->email} for trip {$trip->id}: {$e->getMessage()}");
         }
     }
 
     private function saveTripForUser(Trip $trip, $userId)
     {
-        // Find the user by email address
-        $user = User::where('id', $userId)->first();
+        $user = User::find($userId);
 
         if ($user) {
             $newTrip = clone $trip;
-            // Set the user ID for the new trip
             $newTrip->guest_id = $user->id;
-            // Save the new trip for the user
             $newTrip->save();
         } else {
-            Log::error("User with email {$userId} not found.");
+            Log::error("User with ID {$userId} not found.");
         }
     }
 
-    private function getUsersWithinDistance(Trip $trip): \Illuminate\Support\Collection
+    private function getUsersWithinDistance(Trip $trip)
     {
         $user = Auth::user();
 
@@ -110,16 +359,21 @@ class TripService
         }
 
         $variableDistance = $trip->variable_distance;
-        // Query to get users within the specified distance range
         $usersWithinDistance = User::selectRaw(
             'users.*, ( 3959 * acos( cos( radians(?) ) * cos( radians( latitude ) ) * cos( radians( longitude ) - radians(?) ) + sin( radians(?) ) * sin( radians( latitude ) ) ) ) AS distance',
             [$user->latitude, $user->longitude, $user->latitude]
         )
-            ->having('distance', '<=', $variableDistance)
-            ->get();
+        ->having('distance', '<=', $variableDistance)
+        ->get();
 
         return $usersWithinDistance;
     }
+    
+    
+    
+    
+    
+    
 
     public function acceptTrip(Trip $trip): bool
     {
@@ -133,12 +387,11 @@ class TripService
             ]);
 
             $this->notifyTripCreator($trip);
-
+           
             return true;
         } else {
             return false;
         }
-
     }
 
     protected function notifyTripCreator(Trip $trip)
@@ -169,6 +422,15 @@ class TripService
         }
     }
 
+    public function getAcceptedUsersCount(int $tripId): int
+    {
+        return Trip::where('id', $tripId)
+                   ->where('trip_status', 'accepted')
+                   ->count();
+    }
+    
+
+
     public function getAllTripsPerUser($userId)
     {
         if (!Auth::check()) {
@@ -181,6 +443,8 @@ class TripService
 
     }
 
+
+
     public function getAllTripsAsPassenger()
     {
         $perPage = 10;
@@ -188,6 +452,8 @@ class TripService
             ->orderBy('created_at', 'asc')
             ->paginate($perPage);
     }
+
+
 
     public function getTripDetails($tripId)
     {
@@ -207,6 +473,8 @@ class TripService
         }
         return null;
     }
+
+
 
     public function updateTripStatus($tripId, $newStatus, $lat, $long)
     {
