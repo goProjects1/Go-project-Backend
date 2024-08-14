@@ -119,6 +119,9 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::put('/feedbacks/{id}', [FeedbackController::class, 'update']);
     Route::delete('/feedbacks/{id}', [FeedbackController::class, 'destroy']);
     Route::post('/admin-reply/{id}/{feedback_id}/user-reply', [FeedbackController::class, 'userReply']);
+    
+    
+    Route::get('/get-trip-available-seat/{tripId}', [TripController::class, 'getAcceptedUsersCount']);
 
     // Referrals
     Route::get('/generate-link', [ReferralController::class, 'generateReferralUrl']);
