@@ -78,87 +78,70 @@ class AuthController extends BaseController
         return request()->ip();
     }
 
-    public function AttemptLogin(Request $request): JsonResponse
-    {
-        //try {
+   public function AttemptLogin(Request $request): JsonResponse
+{
+    try {
         $email = $request->get('email');
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             return response()->json(['message' => 'Invalid email format.'], 422);
         }
+
         $password = $request->get('password');
         $user = User::where('email', '=', $email)->first();
 
-        // Implement rate limiting for user and IP address using Redis cache
-//            $userRateLimitKey = 'rate_limit:user:' . $user->id . ':' . $email;
-//            $ipRateLimitKey = 'rate_limit:ip:' . $this->getRequesterIP();
-//            $rateLimitDuration = 300; // 5 minutes
-        $rateLimitMaxAttempts = 3;
-
-//            $currentUserAttempts = (int) Redis::get($userRateLimitKey) ?? 0;
-//            $currentIPAttempts = (int) Redis::get($ipRateLimitKey) ?? 0;
-
-//    if ($currentUserAttempts >= $rateLimitMaxAttempts || $currentIPAttempts >= $rateLimitMaxAttempts) {
-        //      return response(['message' => 'Too many login attempts. Try again after 5 minutes.'], 429);
-        // }
+        if (!$user) {
+            return response()->json(['message' => 'User not found.'], 404);
+        }
 
         if (Hash::check($password, $user->password)) {
             $otp = random_int(0, 999999);
-            $otp = str_pad($otp, 6, 0, STR_PAD_LEFT);
+            $otp = str_pad($otp, 6, '0', STR_PAD_LEFT);
             Log::info("otp = " . $otp);
 
-            // Update user's OTP in the database
+            // Update user's OTP and expiration time in the database
             $user->otp = $otp;
+            $user->otp_expires_at = now()->addMinutes(5); // Set expiration time to 5 minutes from now
             $user->save();
 
             // Send email with OTP
-            $data = [
-                'otp' => $otp,
-                'email' => $email
-            ];
+            $data = ['otp' => $otp, 'email' => $email];
             $subject = 'GOPROJECT: ONE TIME PASSWORD';
             Mail::send('Email.otp', $data, function ($message) use ($request, $subject) {
                 $message->to($request->email)->subject($subject);
             });
 
-            // Ensure to update the Redis keys when the login is successful
-//                Redis::incr($userRateLimitKey);
-//                Redis::incr($ipRateLimitKey);
-//                if (!Redis::ttl($userRateLimitKey)) {
-//                    Redis::expire($userRateLimitKey, $rateLimitDuration);
-//                }
-//                if (!Redis::ttl($ipRateLimitKey)) {
-//                    Redis::expire($ipRateLimitKey, $rateLimitDuration);
-//                }
-
-            $success = "Success";
-            return $this->sendResponse($success, 'OTP sent successfully.');
-            //     return response(["status" => 200, "message" => "OTP sent successfully"]);
+            return $this->sendResponse('Success', 'OTP sent successfully.');
         } else {
-            return response()->json(['message' => 'Record not found.'], 404);
+            return response()->json(['message' => 'Invalid credentials.'], 401);
         }
-//        } catch (QueryException $e) {
-//            // Handle database query exceptions
-//            return response(['message' => 'Database Error'], 500);
-//        } catch (\Exception $e) {
-//            // Handle other exceptions
-//            return response(['message' => 'Internal Server Error'], 500);
-//        }
-
+    } catch (\Exception $e) {
+        Log::error($e->getMessage());
+        return response()->json(['message' => 'Internal Server Error'], 500);
     }
+}
 
-    public function loginViaOtp(Request $request)
-    {
-        $user = User::where([['email', '=', $request->email], ['otp', '=', $request->otp]])->first();
-        if ($user) {
-            auth()->login($user, true);
-            $user->otp = null;
-            $user->save();
-            $success['token'] = $user->createToken('MyAuthApp')->plainTextToken;
-            return $this->sendResponse($success, "Success");
-        } else {
-            return response(["status" => 401, 'message' => 'Invalid']);
-        }
+
+   public function loginViaOtp(Request $request)
+{
+    $user = User::where('email', $request->email)
+                ->where('otp', $request->otp)
+                ->where('otp_expires_at', '>', now()) // Check if OTP is not expired
+                ->first();
+
+    if ($user) {
+        // Log in the user and clear the OTP
+        auth()->login($user, true);
+        $user->otp = null;
+        $user->otp_expires_at = null; // Clear the expiration time as well
+        $user->save();
+
+        // Generate a new authentication token
+        $success['token'] = $user->createToken('MyAuthApp')->plainTextToken;
+        return $this->sendResponse($success, 'Success');
+    } else {
+        return response()->json(['status' => 401, 'message' => 'Invalid OTP or OTP has expired.']);
     }
+}
 
 
 
