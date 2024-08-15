@@ -15,7 +15,7 @@ class CreateWithrawalsTable extends Migration
     {
         Schema::create('withrawals', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id_id');
+            $table->foreignId('user_id');
             $table->string('accountName')->nullable();
             $table->string('accountNumber')->nullable();
             $table->string('description')->nullable();

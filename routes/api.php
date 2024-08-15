@@ -32,6 +32,7 @@ Route::post('/register', [AuthController::class, 'register']);
 Route::post('/forgot-password', [ForgetpasswordController::class, 'forgot']);
 Route::post('/reset', [ForgetpasswordController::class, 'reset']);
 Route::post('/admin/register', [AdminController::class, 'adminRegister']);
+Route::get('getBanks', 'BankController@ngnBanksApiList');
 //Get all Schedule Trips
 Route::get('/get-scheduleTrip', [TripScheduleController::class, 'getAllScheduledJourney']);
 Route::get('/trips-with-schedules', [TripController::class, 'getTripsWithSchedules']);
@@ -119,8 +120,21 @@ Route::middleware(['auth:sanctum'])->group(function () {
     Route::put('/feedbacks/{id}', [FeedbackController::class, 'update']);
     Route::delete('/feedbacks/{id}', [FeedbackController::class, 'destroy']);
     Route::post('/admin-reply/{id}/{feedback_id}/user-reply', [FeedbackController::class, 'userReply']);
-    
-    
+
+    //Bank
+    Route::put('updateBank/{bankid}', 'BankController@updateBank');
+    Route::post('addBank', 'BankController@addBank');
+    Route::get('getBankPerUser', 'BankController@getBankPerUser');
+    Route::delete('bank/{id}', 'BankController@bank');
+
+
+    Route::post('collection', 'PaymentController@Collection');
+    Route::post('verify-account', 'PaymentController@accountVerification');
+    Route::get('get-ajo-withdrawal', 'PaymentController@getAjoWithdrawalTransaction');
+
+    // Wallet
+    Route::get('get-ledger', 'WalletController@createWallet');
+
     Route::get('/get-trip-available-seat/{tripId}', [TripController::class, 'getAcceptedUsersCount']);
 
     // Referrals
