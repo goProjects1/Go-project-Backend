@@ -20,20 +20,7 @@ use Illuminate\Auth\AuthenticationException;
 
 class PaymentService
 {
-
-    public $paythruService;
-
-
-    public function __construct(PaythruService $paythruService)
-    {
-        $this->paythruService = $paythruService;
-
-    }
-
-    /**
-     * @throws ApiErrorException
-     */
-    public function inviteUserToPayment($payment, $request): bool
+    public function inviteUserToPayment($payment, $request)
     {
         $paymentChannel = $request->paymentChannel;
         $emails = $request->email;
@@ -106,12 +93,9 @@ class PaymentService
         $payers = [];
         foreach ($emailsArray as $key => $email) {
             $payable = $this->calculatePayableAmount($payment, $request, $email, $emailCount, $key);
-           // $passenger = User::where('email', $email)->first();
-           // $name = $passenger ? $passenger->first_name : null;
 
             Payment::create([
                 'user_id' => Auth::user()->id,
-              //  'passenger_id' => $email->id ?  $email->id : null,
                 'trip_id' => $payment->id,
                 'email' => $email,
                 'split_method_id' => $request->split_method_id,
@@ -215,7 +199,7 @@ class PaymentService
     private function calculatePayableAmount($payment, $request, $email, $emailCount, $key)
     {
         $payable = 0;
-        $amount = $payment->amount; // Ensure $payment is an object with an amount property
+        $amount = $payment->amount;
 
         switch ($request->split_method_id) {
             case 1:
@@ -258,9 +242,5 @@ class PaymentService
             throw new AuthenticationException('User is not authenticated.');
         }
     }
-
-
-
-
 
 }
