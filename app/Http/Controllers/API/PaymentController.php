@@ -8,16 +8,21 @@ use App\Models\Bank;
 use App\Models\Payment;
 use App\Models\ReferralSetting;
 use App\Models\Trip;
+use App\Models\TripScheduleActive;
 use App\Models\User;
+use App\Models\Verifysms;
 use App\Models\Withrawal;
 use App\Services\MposService;
 use App\Services\PaymentService;
+use App\Services\PaythruService;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Auth\AuthenticationException;
 use App\Http\Controllers\API\BaseController as BaseController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 
 
@@ -25,23 +30,29 @@ class PaymentController extends BaseController
 {
     public $paymentService;
     public $mposService;
-    public function __construct(PaymentService $paymentService, MposService $mposService)
+    public $paythruService;
+    public function __construct(PaymentService $paymentService, MposService $mposService,PaythruService $paythruService)
     {
         $this->paymentService = $paymentService;
         $this->mposService = $mposService;
+        $this->paythruService = $paythruService;
     }
 
-    public function inviteUserToTripPayment(Request $request, $tripId)
+    public function inviteUserToTripPayment(Request $request, $tripId = null): \Illuminate\Http\JsonResponse
     {
+        // Determine the source
+        $sourceId = $request->input('souceId');
 
-       // return $payment = Trip::findOrFail($tripId);
-        try {
-            $payment = Trip::findOrFail($tripId);
-        } catch (\Exception $e) {
-            return response()->json(['error' => 'Trip not found'], 404);
-        }
+        // Check if the source is 'trip_schedule'
+        if ($sourceId === 'trip_schedule') {
+            $payment = TripScheduleActive::find($tripId);
 
-        if ($payment) {
+            // Validate if tripId is found in TripScheduleActive
+            if (!$payment) {
+                return response()->json(['error' => 'Trip schedule not found'], 404);
+            }
+
+            // Proceed with inviting user to payment
             try {
                 $this->paymentService->inviteUserToPayment($payment, $request);
                 return response()->json(['message' => 'Payment links sent successfully']);
@@ -49,6 +60,49 @@ class PaymentController extends BaseController
                 return response()->json(['error' => $e->getMessage()], 500);
             }
         }
+
+        // Check if the source is 'trip'
+        if ($sourceId === 'trip') {
+            $payment = Trip::find($tripId);
+
+            // If not found in trips table, check TripScheduleActiveController
+            if (!$payment) {
+                $tripId = $this->getTripIdFromActiveController($tripId);
+                $payment = Trip::find($tripId);
+
+                if (!$payment) {
+                    return response()->json(['error' => 'Trip not found'], 404);
+                }
+            }
+
+            // Proceed with inviting user to payment
+            try {
+                $this->paymentService->inviteUserToPayment($payment, $request);
+                return response()->json(['message' => 'Payment links sent successfully']);
+            } catch (\Exception $e) {
+                return response()->json(['error' => $e->getMessage()], 500);
+            }
+        }
+
+        // Handle case where sourceId is neither 'trip_schedule' nor 'trip'
+        return response()->json(['error' => 'Invalid source ID'], 400);
+    }
+
+
+
+    private function getPaythruToken()
+    {
+        $token = $this->paythruService->handle();
+
+        if (!$token) {
+            return false;
+        }
+
+        if (is_string($token) && strpos($token, '403') !== false) {
+            return response()->json(['error' => 'Access denied. You do not have permission to access this resource.'], 403);
+        }
+
+        return $token;
     }
 
     public function getPayment(Request $request): \Illuminate\Http\JsonResponse
@@ -62,26 +116,38 @@ class PaymentController extends BaseController
     }
 
 
-    public function mPosOneTimePay(Request $request, $tripId)
+    public function mPosOneTimePay(Request $request, $tripId): \Illuminate\Http\JsonResponse
     {
+        // Retrieve the sourceId from the request
+        $sourceId = $request->input('souceId'); // Ensure 'souceId' is correct or change it to 'sourceId' if needed
 
-        // return $payment = Trip::findOrFail($tripId);
-        try {
-            $payment = Trip::findOrFail($tripId);
-        } catch (\Exception $e) {
-            return response()->json(['error' => 'Trip not found'], 404);
+        // Initialize the payment variable
+        $payment = null;
+
+        // Determine the source and query the appropriate table
+        if ($sourceId === 'trip') {
+            $payment = Trip::find($tripId);
+        } elseif ($sourceId === 'trip_schedule') {
+            $payment = TripScheduleActive::find($tripId);
         }
-        $email = $request->email;
-        if ($payment) {
-            try {
-                $transaction = $this->mposService->mPosOneTimePay($payment, $email,$request);
-                return $this->sendResponse($transaction,  'Payment links sent successfully');
 
-            } catch (\Exception $e) {
-                return response()->json(['error' => $e->getMessage()], 500);
-            }
+        // If the payment is not found in any table, return a 404 response
+        if (!$payment) {
+            return response()->json(['error' => 'Trip or Trip schedule not found'], 404);
+        }
+
+        // Retrieve the email from the request
+        $email = $request->input('email');
+
+        // Proceed with processing the payment
+        try {
+            $transaction = $this->mposService->mPosOneTimePay($payment, $email, $request);
+            return $this->sendResponse($transaction, 'Payment links sent successfully');
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
         }
     }
+
 
 
     // Calling PayThru gateway for transaction response updates
@@ -351,6 +417,57 @@ class PaymentController extends BaseController
 
 
     }
+
+
+
+    public function EmailVerification(Request $request)
+    {
+        $otp = random_int(0, 999999);
+        $otp = str_pad($otp, 6, 0, STR_PAD_LEFT);
+        Log::info("otp = " . $otp);
+
+        $checkAuth = Auth::user()->id;
+        $checkAuths = Auth::user()->email;
+        $email = request()->get('email');
+        $medium = request()->get('medium');
+        $otp_expires_time = Carbon::now()->addMinutes(15);
+
+        $userWithEmail = User::where('email', '=', $email)->first();
+
+        if ($userWithEmail) {
+            if ($userWithEmail->email != $checkAuths) {
+                return response([
+                    'message' => 'You are not authorized'
+                ], 403);
+            } else {
+                $userWithEmail->update(['otp' => $otp]);
+                $toks = Verifysms::create([
+                    'email' => $request->email,
+                    'otp' => $otp,
+                    'medium' => $medium,
+                    'otp_expires_time' => $otp_expires_time,
+                    'user_id' => Auth::user()->id,
+                ]);
+
+                $data = [
+                    'otp' => $otp,
+                    'email' => $request->email
+                ];
+
+                $subject = 'AzatMe: Email Verification';
+                Mail::send('Email.verifictaion', $data, function ($message) use ($request, $subject) {
+                    $message->to($request->email)->subject($subject);
+                });
+
+                return response(["status" => 200, "message" => "OTP has been sent to your mail"]);
+            }
+        } else {
+            return response()->json([
+                'message' => 'Record not found.'
+            ], 404);
+        }
+    }
+
 
 
 
